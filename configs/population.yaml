@@ -1,0 +1,7 @@
+# School population configuration (all students are female)
+students:
+  count: 100
+  age_range: [14, 18]
+staff:
+  count: 10
+  age_range: [25, 65]

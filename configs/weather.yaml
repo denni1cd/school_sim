@@ -1,0 +1,3 @@
+current_season: "Summer"
+seasons: ["Spring", "Summer", "Fall", "Winter"]
+# Additional weather patterns can be added here

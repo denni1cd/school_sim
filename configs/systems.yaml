@@ -1,0 +1,6 @@
+factions:
+  enabled: false
+  types: ["Matriarchal", "Patriarchal", "Political", "Corporate"]
+psychological_manipulation:
+  enabled: false
+# Additional systems can be configured here

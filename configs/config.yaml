@@ -1,0 +1,44 @@
+# Growth‐chart CSVs (female, 2–20 yrs)
+growth_charts:
+  weight_csv: "configs/female_weight_2_20.csv"
+  height_csv: "configs/female_height_2_20.csv"
+
+# Anthropometric ratios
+measurement_ratios:
+  bust:
+    mu: 0.56
+    sigma: 0.03
+  waist:
+    mu: 0.46
+    sigma: 0.03
+  hip:
+    mu: 0.63
+    sigma: 0.03
+
+# Population constraints
+population_config:
+  age_range:
+    min: 5
+    max: 18
+  seed: 42
+
+# Context flags for inventory rules
+contexts:
+  time_of_day: ["morning","afternoon","evening"]
+  seasons:     ["spring","summer","fall","winter"]
+  uniforms:    ["standard","PE","lab_coat"]
+  styles:      ["casual","sporty","academic"]
+
+# Activities pool
+activities:
+  - "reading a book"
+  - "playing soccer"
+  - "painting"
+  - "doing a science experiment"
+  - "attending a lab session"
+
+# WebUI endpoint
+webui_api: "http://127.0.0.1:5000/v1/completions"
+
+# Batch size
+batch_size: 50

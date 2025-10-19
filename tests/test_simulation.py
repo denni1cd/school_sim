@@ -60,3 +60,13 @@ def test_multiple_npcs_move_on_first_tick():
     simulation.tick()
     moving = sum(1 for npc in simulation.npcs if npc.state == NPCState.MOVING)
     assert moving >= 2
+
+
+def test_destinations_move_npcs_inside_rooms():
+    simulation = Simulation(CFG)
+    room = simulation.grid.rooms['Classroom_STEM']
+    doors = set(room.doors)
+
+    for _ in range(10):
+        dest = simulation._select_destination(room.name)
+        assert dest not in doors

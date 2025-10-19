@@ -1,5 +1,5 @@
 {
-  "tile_size": 48,
+  "tile_size": 32,
   "width": 40,
   "height": 24,
   "passability": [
@@ -1360,6 +1360,12 @@
       ]
     ],
     "default": [
+      [
+        19,
+        10
+      ]
+    ],
+    "player": [
       [
         19,
         10

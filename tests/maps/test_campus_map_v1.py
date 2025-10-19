@@ -55,3 +55,17 @@ def test_key_routes_have_paths(campus_grid: MapGrid) -> None:
         assert path, f'No path between {start_name} and {end_name}'
         assert path[0] == start
         assert path[-1] == end
+
+
+def test_room_interior_targets_are_walkable(campus_grid: MapGrid) -> None:
+    room = campus_grid.rooms['Classroom_STEM']
+    interiors = campus_grid.room_interior_targets(room.name)
+    assert interiors, 'expected interior walk targets for Classroom_STEM'
+
+    rx, ry, rw, rh = room.rect
+    doors = set(room.doors)
+    for tile in interiors:
+        x, y = tile
+        assert campus_grid.walkable(x, y), f'interior tile {tile} should be walkable'
+        assert (rx <= x < rx + rw) and (ry <= y < ry + rh), f'{tile} must be inside {room.name}'
+        assert tile not in doors, 'interior targets should not include door tiles'

@@ -107,7 +107,17 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
     surface = pygame.display.set_mode((window_width, window_height))
     font = pygame.font.SysFont('consolas', 18)
 
-    player = Player(x=2, y=2)
+    spawn_candidates = grid.spawn_points('player')
+    if spawn_candidates:
+        spawn_x, spawn_y = spawn_candidates[0]
+    else:
+        fallback_spawns = grid.spawn_points()
+        if fallback_spawns:
+            spawn_x, spawn_y = fallback_spawns[0]
+        else:
+            spawn_x, spawn_y = 1, 1
+
+    player = Player(x=spawn_x, y=spawn_y)
     controller = PlayerController(grid, cfg['movement']['pc_speed_tiles_per_sec'])
     simulation = Simulation(cfg, grid, map_path=map_path)
     tick_rate = float(cfg['time']['tick_rate_hz'])

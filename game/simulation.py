@@ -179,7 +179,13 @@ class Simulation:
 
     def _select_destination(self, room_name: str) -> Tuple[int, int]:
         room = self.grid.rooms[room_name]
+        interior = self.grid.room_interior_targets(room_name)
+        if interior:
+            return self.rng.choice(interior)
         if room.doors:
+            walkable_doors = [door for door in room.doors if self.grid.walkable(*door)]
+            if walkable_doors:
+                return self.rng.choice(walkable_doors)
             return self.rng.choice(room.doors)
         return self.grid.random_room_tile(room_name, self.rng)
 

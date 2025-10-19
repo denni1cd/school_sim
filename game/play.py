@@ -40,36 +40,67 @@ def _nearest_npc(player: Player, simulation: Simulation):
     return closest, best_dist
 
 
-def _draw_map(surface, grid: MapGrid, player: Player, simulation: Simulation, font, prompt: Optional[str], message: Optional[str]) -> None:
+def _draw_map(
+    surface,
+    grid: MapGrid,
+    player: Player,
+    simulation: Simulation,
+    font,
+    prompt: Optional[str],
+    message: Optional[str],
+    offset_x: int,
+    offset_y: int,
+) -> None:
     tile_size = grid.tile_size
     surface.fill(BACKGROUND)
 
     for y in range(grid.height):
         for x in range(grid.width):
-            rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
+            rect = pygame.Rect(
+                offset_x + x * tile_size,
+                offset_y + y * tile_size,
+                tile_size,
+                tile_size,
+            )
             color = WALKABLE_COLOR if grid.passability[y][x] else WALL_COLOR
             pygame.draw.rect(surface, color, rect)
             pygame.draw.rect(surface, GRID_COLOR, rect, width=1)
 
     for room in grid.rooms.values():
         rx, ry, rw, rh = room.rect
-        rect = pygame.Rect(rx * tile_size, ry * tile_size, rw * tile_size, rh * tile_size)
+        rect = pygame.Rect(
+            offset_x + rx * tile_size,
+            offset_y + ry * tile_size,
+            rw * tile_size,
+            rh * tile_size,
+        )
         pygame.draw.rect(surface, ROOM_OUTLINE, rect, width=2)
         label = font.render(room.name, True, TEXT_COLOR)
         surface.blit(label, (rect.x + 6, rect.y + 6))
         for door_x, door_y in room.doors:
-            door_rect = pygame.Rect(door_x * tile_size, door_y * tile_size, tile_size, tile_size)
+            door_rect = pygame.Rect(
+                offset_x + door_x * tile_size,
+                offset_y + door_y * tile_size,
+                tile_size,
+                tile_size,
+            )
             door_rect.inflate_ip(-tile_size * 0.5, -tile_size * 0.5)
             pygame.draw.rect(surface, DOOR_COLOR, door_rect, border_radius=3)
 
     px, py = player.position
     player_marker = pygame.Rect(0, 0, tile_size * 0.5, tile_size * 0.5)
-    player_marker.center = (px * tile_size, py * tile_size)
+    player_marker.center = (
+        offset_x + px * tile_size,
+        offset_y + py * tile_size,
+    )
     pygame.draw.rect(surface, PLAYER_COLOR, player_marker, border_radius=6)
 
     for npc in simulation.npcs:
         marker = pygame.Rect(0, 0, tile_size * 0.5, tile_size * 0.5)
-        marker.center = ((npc.x + 0.5) * tile_size, (npc.y + 0.5) * tile_size)
+        marker.center = (
+            offset_x + (npc.x + 0.5) * tile_size,
+            offset_y + (npc.y + 0.5) * tile_size,
+        )
         pygame.draw.rect(surface, NPC_COLOR, marker, border_radius=6)
         label = font.render(f"{npc.name} ({npc.state.value})", True, TEXT_COLOR)
         surface.blit(label, (marker.x, marker.y - 18))
@@ -101,11 +132,32 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
     default_map = data_cfg.get('map_file', 'data/campus_map.json')
     map_path = resolve_map_file(map_override, default_map)
     grid = MapGrid(str(map_path))
-    tile_size = grid.tile_size
-    window_width = max(cfg['window']['width'], grid.width * tile_size)
-    window_height = max(cfg['window']['height'], grid.height * tile_size)
-    surface = pygame.display.set_mode((window_width, window_height))
+
+    window_cfg = cfg['window']
+    target_width = int(window_cfg['width'])
+    target_height = int(window_cfg['height'])
+
+    map_cfg = cfg.get('map', {})
+    base_tile_size = int(map_cfg.get('tile_size', grid.tile_size))
+    max_tile_width = target_width // grid.width if grid.width else base_tile_size
+    max_tile_height = target_height // grid.height if grid.height else base_tile_size
+    candidates = [base_tile_size]
+    candidates.append(max_tile_width)
+    candidates.append(max_tile_height)
+    tile_size = min(candidates)
+    if tile_size <= 0:
+        tile_size = 1
+
+    grid.tile_size = tile_size  # dynamically scale drawing size for the viewer
+
+    map_pixel_width = grid.width * tile_size
+    map_pixel_height = grid.height * tile_size
+
+    surface = pygame.display.set_mode((target_width, target_height))
     font = pygame.font.SysFont('consolas', 18)
+
+    offset_x = max(0, (target_width - map_pixel_width) // 2)
+    offset_y = max(0, (target_height - map_pixel_height) // 2)
 
     spawn_candidates = grid.spawn_points('player')
     if spawn_candidates:
@@ -118,6 +170,7 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
             spawn_x, spawn_y = 1, 1
 
     player = Player(x=spawn_x, y=spawn_y)
+    player.teleport_to_tile(spawn_x, spawn_y)
     controller = PlayerController(grid, cfg['movement']['pc_speed_tiles_per_sec'])
     simulation = Simulation(cfg, grid, map_path=map_path)
     tick_rate = float(cfg['time']['tick_rate_hz'])
@@ -167,7 +220,7 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
         if npc and dist <= 1.5:
             prompt = f"Press E to chat with {npc.name}"
 
-        _draw_map(surface, grid, player, simulation, font, prompt, message_text)
+        _draw_map(surface, grid, player, simulation, font, prompt, message_text, offset_x, offset_y)
         pygame.display.flip()
 
     pygame.quit()

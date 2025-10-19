@@ -1,0 +1,55 @@
+activities:
+  wake:
+    duration: 30
+    location: Dorm_North
+    notes: "Students rise and prepare for the day."
+  breakfast:
+    duration: 30
+    location: Cafeteria
+    notes: "Grab breakfast with housemates."
+  class:
+    duration: 180
+    location: Classroom_STEM
+    notes: "Core academic block."
+  lunch:
+    duration: 60
+    location: Cafeteria
+  study:
+    duration: 120
+    location: Library
+  club:
+    duration: 90
+    location: Classroom_Arts
+  errand:
+    duration: 60
+    location: Administration
+  free:
+    duration: 120
+    location: Dorm_Commons
+  dinner:
+    duration: 60
+    location: Cafeteria
+  evening_walk:
+    duration: 45
+    location: Courtyard
+  practice:
+    duration: 120
+    location: Gymnasium
+  prefect_rounds:
+    duration: 60
+    location: Dorm_Commons
+  lights_out_north:
+    duration: 480
+    location: Dorm_North
+  lights_out_south:
+    duration: 480
+    location: Dorm_South
+  librarian_shift:
+    duration: 360
+    location: Library
+  library_break:
+    duration: 60
+    location: Courtyard
+  librarian_close:
+    duration: 120
+    location: Library

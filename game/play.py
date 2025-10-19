@@ -11,7 +11,7 @@ import pygame
 from .actors.pc import Player
 from .config import load_config
 from .core.map import MapGrid
-from .simulation import Simulation, resolve_data_path
+from .simulation import Simulation, resolve_map_file
 from .systems.player_controller import InputState, PlayerController
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,36 +40,68 @@ def _nearest_npc(player: Player, simulation: Simulation):
     return closest, best_dist
 
 
-def _draw_map(surface, grid: MapGrid, player: Player, simulation: Simulation, font, prompt: Optional[str], message: Optional[str]) -> None:
+def _draw_map(
+    surface,
+    grid: MapGrid,
+    player: Player,
+    simulation: Simulation,
+    font,
+    prompt: Optional[str],
+    message: Optional[str],
+    offset_x: int,
+    offset_y: int,
+    activity_overlay: Optional[list[str]] = None,
+) -> None:
     tile_size = grid.tile_size
     surface.fill(BACKGROUND)
 
     for y in range(grid.height):
         for x in range(grid.width):
-            rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
+            rect = pygame.Rect(
+                offset_x + x * tile_size,
+                offset_y + y * tile_size,
+                tile_size,
+                tile_size,
+            )
             color = WALKABLE_COLOR if grid.passability[y][x] else WALL_COLOR
             pygame.draw.rect(surface, color, rect)
             pygame.draw.rect(surface, GRID_COLOR, rect, width=1)
 
     for room in grid.rooms.values():
         rx, ry, rw, rh = room.rect
-        rect = pygame.Rect(rx * tile_size, ry * tile_size, rw * tile_size, rh * tile_size)
+        rect = pygame.Rect(
+            offset_x + rx * tile_size,
+            offset_y + ry * tile_size,
+            rw * tile_size,
+            rh * tile_size,
+        )
         pygame.draw.rect(surface, ROOM_OUTLINE, rect, width=2)
         label = font.render(room.name, True, TEXT_COLOR)
         surface.blit(label, (rect.x + 6, rect.y + 6))
         for door_x, door_y in room.doors:
-            door_rect = pygame.Rect(door_x * tile_size, door_y * tile_size, tile_size, tile_size)
+            door_rect = pygame.Rect(
+                offset_x + door_x * tile_size,
+                offset_y + door_y * tile_size,
+                tile_size,
+                tile_size,
+            )
             door_rect.inflate_ip(-tile_size * 0.5, -tile_size * 0.5)
             pygame.draw.rect(surface, DOOR_COLOR, door_rect, border_radius=3)
 
     px, py = player.position
     player_marker = pygame.Rect(0, 0, tile_size * 0.5, tile_size * 0.5)
-    player_marker.center = (px * tile_size, py * tile_size)
+    player_marker.center = (
+        offset_x + px * tile_size,
+        offset_y + py * tile_size,
+    )
     pygame.draw.rect(surface, PLAYER_COLOR, player_marker, border_radius=6)
 
     for npc in simulation.npcs:
         marker = pygame.Rect(0, 0, tile_size * 0.5, tile_size * 0.5)
-        marker.center = ((npc.x + 0.5) * tile_size, (npc.y + 0.5) * tile_size)
+        marker.center = (
+            offset_x + (npc.x + 0.5) * tile_size,
+            offset_y + (npc.y + 0.5) * tile_size,
+        )
         pygame.draw.rect(surface, NPC_COLOR, marker, border_radius=6)
         label = font.render(f"{npc.name} ({npc.state.value})", True, TEXT_COLOR)
         surface.blit(label, (marker.x, marker.y - 18))
@@ -89,8 +121,15 @@ def _draw_map(surface, grid: MapGrid, player: Player, simulation: Simulation, fo
         overlay = font.render(message, True, TEXT_COLOR)
         surface.blit(overlay, (16, surface.get_height() - 32))
 
+    if activity_overlay:
+        base_x = surface.get_width() - 320
+        base_y = 16
+        for idx, line in enumerate(activity_overlay):
+            text_surface = font.render(line, True, TEXT_COLOR)
+            surface.blit(text_surface, (base_x, base_y + idx * 20))
 
-def run(profile: str | None = None) -> None:
+
+def run(profile: str | None = None, map_override: str | None = None) -> None:
     cfg = load_config(profile=profile)
 
     pygame.init()
@@ -98,17 +137,50 @@ def run(profile: str | None = None) -> None:
     pygame.display.set_caption('School Simulation Prototype - Milestone 7')
 
     data_cfg = cfg.get('data', {})
-    map_path = resolve_data_path(data_cfg.get('map_file', 'data/campus_map.json'))
+    default_map = data_cfg.get('map_file', 'data/campus_map.json')
+    map_path = resolve_map_file(map_override, default_map)
     grid = MapGrid(str(map_path))
-    tile_size = grid.tile_size
-    window_width = max(cfg['window']['width'], grid.width * tile_size)
-    window_height = max(cfg['window']['height'], grid.height * tile_size)
-    surface = pygame.display.set_mode((window_width, window_height))
+
+    window_cfg = cfg['window']
+    target_width = int(window_cfg['width'])
+    target_height = int(window_cfg['height'])
+
+    map_cfg = cfg.get('map', {})
+    base_tile_size = int(map_cfg.get('tile_size', grid.tile_size))
+    max_tile_width = target_width // grid.width if grid.width else base_tile_size
+    max_tile_height = target_height // grid.height if grid.height else base_tile_size
+    candidates = [base_tile_size]
+    candidates.append(max_tile_width)
+    candidates.append(max_tile_height)
+    tile_size = min(candidates)
+    if tile_size <= 0:
+        tile_size = 1
+
+    grid.tile_size = tile_size  # dynamically scale drawing size for the viewer
+
+    map_pixel_width = grid.width * tile_size
+    map_pixel_height = grid.height * tile_size
+
+    surface = pygame.display.set_mode((target_width, target_height))
     font = pygame.font.SysFont('consolas', 18)
 
-    player = Player(x=2, y=2)
+    offset_x = max(0, (target_width - map_pixel_width) // 2)
+    offset_y = max(0, (target_height - map_pixel_height) // 2)
+
+    spawn_candidates = grid.spawn_points('player')
+    if spawn_candidates:
+        spawn_x, spawn_y = spawn_candidates[0]
+    else:
+        fallback_spawns = grid.spawn_points()
+        if fallback_spawns:
+            spawn_x, spawn_y = fallback_spawns[0]
+        else:
+            spawn_x, spawn_y = 1, 1
+
+    player = Player(x=spawn_x, y=spawn_y)
+    player.teleport_to_tile(spawn_x, spawn_y)
     controller = PlayerController(grid, cfg['movement']['pc_speed_tiles_per_sec'])
-    simulation = Simulation(cfg, grid)
+    simulation = Simulation(cfg, grid, map_path=map_path)
     tick_rate = float(cfg['time']['tick_rate_hz'])
     tick_accumulator = 0.0
 
@@ -156,7 +228,38 @@ def run(profile: str | None = None) -> None:
         if npc and dist <= 1.5:
             prompt = f"Press E to chat with {npc.name}"
 
-        _draw_map(surface, grid, player, simulation, font, prompt, message_text)
+        activity_overlay = None
+        if keys[pygame.K_TAB]:
+            tile_x = int(player.position[0])
+            tile_y = int(player.position[1])
+            room = grid.room_for_position(tile_x, tile_y)
+            if room:
+                snapshot = simulation.room_manager.snapshot(room.name)
+                lines = [f"{room.name}: {len(snapshot.occupants)} occupants"]
+                if snapshot.activity_counts:
+                    for label, count in sorted(snapshot.activity_counts.items()):
+                        lines.append(f" - {label}: {count}")
+                else:
+                    lines.append(" - no active tasks")
+                if snapshot.occupants:
+                    occupants = ', '.join(sorted(snapshot.occupants))
+                    lines.append(f"   occupants: {occupants}")
+                activity_overlay = lines
+            else:
+                activity_overlay = ["Outside of defined rooms"]
+
+        _draw_map(
+            surface,
+            grid,
+            player,
+            simulation,
+            font,
+            prompt,
+            message_text,
+            offset_x,
+            offset_y,
+            activity_overlay,
+        )
         pygame.display.flip()
 
     pygame.quit()
@@ -165,9 +268,14 @@ def run(profile: str | None = None) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the pygame school simulation viewer.')
     parser.add_argument('--profile', type=str, help='Configuration profile to load (overrides settings.yaml).')
+    parser.add_argument(
+        '--map',
+        dest='map_name',
+        help='Map file or alias to load (e.g. campus_map_v1 or data/campus_map_v1.json).',
+    )
     args = parser.parse_args()
     try:
-        run(profile=args.profile)
+        run(profile=args.profile, map_override=args.map_name)
     except KeyboardInterrupt:
         pygame.quit()
         sys.exit(0)

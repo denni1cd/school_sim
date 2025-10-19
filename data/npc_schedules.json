@@ -1,0 +1,324 @@
+{
+  "activities": {
+    "sleep": {
+      "duration": 480,
+      "location": "Dorm"
+    },
+    "class": {
+      "duration": 180,
+      "location": "ClassA"
+    },
+    "lunch": {
+      "duration": 60,
+      "location": "Cafe"
+    },
+    "free": {
+      "duration": 240,
+      "location": "Hall"
+    },
+    "study": {
+      "duration": 120,
+      "location": "ClassA"
+    },
+    "club": {
+      "duration": 90,
+      "location": "Hall"
+    },
+    "errand": {
+      "duration": 45,
+      "location": "Cafe"
+    },
+    "evening_walk": {
+      "duration": 60,
+      "location": "Hall"
+    },
+    "librarian_shift": {
+      "duration": 360,
+      "location": "Library"
+    },
+    "library_break": {
+      "duration": 60,
+      "location": "LibraryHall"
+    }
+  },
+  "npcs": [
+    {
+      "name": "Alice",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "06:00",
+          "activity": "free",
+          "jitter": 10
+        },
+        {
+          "time": "08:00",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "12:00",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "13:00",
+          "activity": "class"
+        },
+        {
+          "time": "17:00",
+          "activity": "club",
+          "jitter": 15
+        },
+        {
+          "time": "21:30",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Bea",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "06:30",
+          "activity": "free",
+          "jitter": 15
+        },
+        {
+          "time": "08:15",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "12:30",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "14:00",
+          "activity": "study",
+          "jitter": 10
+        },
+        {
+          "time": "18:00",
+          "activity": "free",
+          "jitter": 20
+        },
+        {
+          "time": "22:30",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Carlos",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "05:45",
+          "activity": "free",
+          "jitter": 15
+        },
+        {
+          "time": "07:45",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "11:45",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "13:15",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "16:00",
+          "activity": "errand",
+          "jitter": 20
+        },
+        {
+          "time": "20:30",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Dana",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "06:15",
+          "activity": "free",
+          "jitter": 10
+        },
+        {
+          "time": "08:30",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "12:15",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "15:00",
+          "activity": "club",
+          "jitter": 15
+        },
+        {
+          "time": "18:30",
+          "activity": "study",
+          "jitter": 10
+        },
+        {
+          "time": "22:00",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Eli",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "06:45",
+          "activity": "free",
+          "jitter": 15
+        },
+        {
+          "time": "09:00",
+          "activity": "class",
+          "jitter": 10
+        },
+        {
+          "time": "12:45",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "14:30",
+          "activity": "errand",
+          "jitter": 15
+        },
+        {
+          "time": "17:30",
+          "activity": "club",
+          "jitter": 20
+        },
+        {
+          "time": "23:00",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Faye",
+      "role": "student",
+      "schedule": [
+        {
+          "time": "05:30",
+          "activity": "free",
+          "jitter": 20
+        },
+        {
+          "time": "07:30",
+          "activity": "class",
+          "jitter": 5
+        },
+        {
+          "time": "12:15",
+          "activity": "lunch",
+          "jitter": 10
+        },
+        {
+          "time": "14:15",
+          "activity": "study",
+          "jitter": 15
+        },
+        {
+          "time": "18:45",
+          "activity": "evening_walk",
+          "jitter": 20
+        },
+        {
+          "time": "21:45",
+          "activity": "sleep",
+          "jitter": 10
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    },
+    {
+      "name": "Gina",
+      "role": "librarian",
+      "schedule": [
+        {
+          "time": "07:30",
+          "activity": "free",
+          "jitter": 10
+        },
+        {
+          "time": "08:30",
+          "activity": "librarian_shift",
+          "jitter": 5
+        },
+        {
+          "time": "12:30",
+          "activity": "library_break",
+          "jitter": 5
+        },
+        {
+          "time": "13:30",
+          "activity": "librarian_shift",
+          "jitter": 5
+        },
+        {
+          "time": "18:30",
+          "activity": "free",
+          "jitter": 10
+        },
+        {
+          "time": "21:00",
+          "activity": "sleep"
+        },
+        {
+          "time": "23:30",
+          "activity": "sleep"
+        }
+      ]
+    }
+  ]
+}

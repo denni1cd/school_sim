@@ -1,0 +1,10 @@
+default: "(Placeholder) {name} says hello."
+rooms:
+  Library: "(Placeholder) {name} whispers about staying quiet among the stacks."
+  Cafe: "(Placeholder) {name} suggests grabbing a snack while the grill is hot."
+  MakerLab: "(Placeholder) {name} shows off a half-finished gadget on the workbench."
+roles:
+  librarian: "(Placeholder) {name} reminds you to return books on time."
+activities:
+  lab_research: "(Placeholder) {name} is deep in a prototype test and barely looks up."
+  library_break: "(Placeholder) {name} is stretching their legs after shelving books."

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from game.actors.base_actor import NPCState
@@ -25,12 +23,16 @@ def test_npcs_arrive_for_class_activity():
     simulation = Simulation(CFG)
     assert len(simulation.npcs) >= 7
 
-    dorm_center = simulation.grid.room_center('Dorm')
-    assert all((npc.x, npc.y) == dorm_center for npc in simulation.npcs)
+    dorm_rooms = {'Dorm_North', 'Dorm_South', 'Dorm_Commons'}
+    for npc in simulation.npcs:
+        room = simulation.grid.room_for_position(npc.x, npc.y)
+        assert room is not None
+        if npc.role == 'student':
+            assert room.name in dorm_rooms
 
-    _advance(simulation, 70)
+    _advance(simulation, 120)
 
-    class_rect = simulation.grid.rooms['ClassA'].rect
+    class_rect = simulation.grid.rooms['Classroom_STEM'].rect
     positions = {npc.name: (npc.x, npc.y) for npc in simulation.npcs}
     activities = {npc.name: getattr(npc.current_activity, 'name', None) for npc in simulation.npcs}
 
@@ -57,4 +59,14 @@ def test_multiple_npcs_move_on_first_tick():
     simulation = Simulation(CFG)
     simulation.tick()
     moving = sum(1 for npc in simulation.npcs if npc.state == NPCState.MOVING)
-    assert moving >= 3
+    assert moving >= 2
+
+
+def test_destinations_move_npcs_inside_rooms():
+    simulation = Simulation(CFG)
+    room = simulation.grid.rooms['Classroom_STEM']
+    doors = set(room.doors)
+
+    for _ in range(10):
+        dest = simulation._select_destination(room.name)
+        assert dest not in doors

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import argparse
@@ -11,7 +10,13 @@ from .simulation import Simulation, resolve_map_file
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main(ticks: int = 300, verbose: bool = False, profile: str | None = None, map_override: str | None = None):
+def main(
+    ticks: int = 300,
+    verbose: bool = False,
+    profile: str | None = None,
+    map_override: str | None = None,
+    dump_daily_plan: str | None = None,
+):
     cfg = load_config(profile=profile)
     random.seed(cfg.get('random_seed', 1337))
     data_cfg = cfg.get('data', {})
@@ -20,6 +25,9 @@ def main(ticks: int = 300, verbose: bool = False, profile: str | None = None, ma
     simulation = Simulation(cfg, map_path=map_path)
     simulation.advance(ticks)
     snapshot = simulation.snapshot()
+
+    if dump_daily_plan:
+        simulation.schedule_system.export_daily_plan(dump_daily_plan)
 
     if verbose:
         print(f"Simulated {ticks} ticks -> game time {snapshot['time']}")
@@ -41,5 +49,16 @@ if __name__ == '__main__':
         help='Map file or alias to load (e.g. campus_map_v1 or data/campus_map_v1.json).',
     )
     parser.add_argument('--verbose', action='store_true', help='Print snapshot details after simulation.')
+    parser.add_argument(
+        '--dump-daily-plan',
+        dest='dump_daily_plan',
+        help='Write the generated daily plan to CSV at the given path.',
+    )
     args = parser.parse_args()
-    main(ticks=args.ticks, verbose=args.verbose, profile=args.profile, map_override=args.map_name)
+    main(
+        ticks=args.ticks,
+        verbose=args.verbose,
+        profile=args.profile,
+        map_override=args.map_name,
+        dump_daily_plan=args.dump_daily_plan,
+    )

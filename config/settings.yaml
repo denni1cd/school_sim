@@ -13,6 +13,6 @@ map:
   tile_size: 32
 data:
   map_file: data/campus_map_v1.json
-  npc_schedule_file: data/npc_schedules.json
+  npc_schedule_file: config/schedules/npc_assignments.yaml
 interactions:
   messages_file: config/interactions.yaml

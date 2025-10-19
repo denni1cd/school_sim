@@ -1,0 +1,58 @@
+activities_file: config/schedules/activities.yaml
+templates_file: config/schedules/student_templates.yaml
+assignments:
+  - name: Alice
+    role: student
+    template: boarding_student
+    variant: weekday
+    notes: "STEM-focused boarding student"
+  - name: Bea
+    role: student
+    template: boarding_student
+    variant: weekday
+    overrides:
+      - slot: evening_social
+        activity: evening_walk
+        room: Courtyard
+        duration: "00:45"
+    notes: "Enjoys evening strolls"
+  - name: Carlos
+    role: student
+    template: athlete_student
+    variant: weekday
+    overrides:
+      - slot: evening_walk
+        activity: free
+        room: Dorm_Commons
+        duration: "01:00"
+    notes: "Varsity athlete"
+  - name: Dana
+    role: student
+    template: boarding_student
+    variant: weekday
+    overrides:
+      - slot: clubs
+        activity: study
+        room: Library
+        duration: "01:30"
+    notes: "Leads the debate society"
+  - name: Eli
+    role: student
+    template: athlete_student
+    variant: weekday
+    overrides:
+      - slot: evening_walk
+        activity: errand
+        room: Administration
+        duration: "01:00"
+    notes: "Assists with student council errands"
+  - name: Faye
+    role: student
+    template: prefect_student
+    variant: weekday
+    notes: "Dorm prefect"
+  - name: Gina
+    role: librarian
+    template: librarian_staff
+    variant: weekday
+    notes: "Resident librarian"

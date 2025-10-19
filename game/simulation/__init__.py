@@ -2,19 +2,27 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
-from typing import Iterable, List, Set, Tuple
+from typing import Iterable, List, Set, Tuple, TYPE_CHECKING
 
 import yaml
 
-from .actors.base_actor import NPCState
-from .actors.npc import NPC
-from .core.map import MapGrid
-from .core.time_clock import GameClock
-from .systems.activity_system import ActivitySystem
-from .systems.movement_system import MovementSystem
-from .systems.schedule_system import ScheduleSystem
+from ..actors.base_actor import NPCState
+from ..actors.npc import NPC
+from ..core.map import MapGrid
+from ..core.time_clock import GameClock
+from ..systems.activity_system import ActivitySystem
+from ..systems.movement_system import MovementSystem
 
-ROOT = Path(__file__).resolve().parents[1]
+if TYPE_CHECKING:
+    from ..systems.schedule_system import ScheduleSystem
+
+ROOT = Path(__file__).resolve().parents[2]
+
+__all__ = [
+    "Simulation",
+    "resolve_data_path",
+    "resolve_map_file",
+]
 
 
 def resolve_data_path(path: str | Path) -> Path:
@@ -61,6 +69,8 @@ class Simulation:
         self.clock = GameClock(time_cfg['minutes_per_tick'], time_cfg['day_length_minutes'])
         self._minutes_per_tick = float(time_cfg['minutes_per_tick'])
         self._minute_accumulator = 0.0
+
+        from ..systems.schedule_system import ScheduleSystem  # avoid circular import
 
         self.schedule_system = ScheduleSystem(
             self.grid,

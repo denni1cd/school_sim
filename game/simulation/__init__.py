@@ -39,7 +39,15 @@ def resolve_map_file(map_option: str | Path | None, default: str | Path) -> Path
 
     candidate = Path(map_option)
     if not candidate.suffix:
-        alias = candidate.name
+        alias = candidate.name.lower()
+        alias_map = {
+            'campus_map': 'data/campus_map_v1.json',
+            'campus_map_v1': 'data/campus_map_v1.json',
+            'v1': 'data/campus_map_v1.json',
+        }
+        if alias in alias_map:
+            return resolve_data_path(alias_map[alias])
+
         data_dir = ROOT / 'data'
         for pattern in (f'{alias}.json', f'campus_map_{alias}.json'):
             alias_candidate = data_dir / pattern

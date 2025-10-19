@@ -1,8 +1,10 @@
 import pytest
 
 from game.actors.base_actor import NPCState
+from pathlib import Path
+
 from game.config import load_config
-from game.simulation import Simulation
+from game.simulation import Simulation, resolve_map_file
 
 CFG = load_config()
 
@@ -80,3 +82,10 @@ def test_activity_logging_collects_events():
     sample = events[0]
     assert sample.kind in {'activity_start', 'activity_end', 'activity_interrupt'}
     assert sample.activity
+
+
+def test_campus_map_alias_uses_latest_layout():
+    project_root = Path(__file__).resolve().parents[1]
+    expected = project_root / 'data' / 'campus_map_v1.json'
+    resolved = resolve_map_file('campus_map', 'data/campus_map_v1.json')
+    assert resolved == expected

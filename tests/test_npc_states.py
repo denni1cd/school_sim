@@ -6,7 +6,7 @@ def test_npc_state_cycle():
     n = NPC(name='N', x=0, y=0)
     class A:
         duration = 10
-        location = 'Dorm'
+        location = 'Dorm_North'
         name = 'dummy'
     a = A()
     n.assign_activity(a)
@@ -16,7 +16,7 @@ def test_npc_state_cycle():
 def test_begin_activity_with_late_start_adjusts_duration():
     class Activity:
         duration = 120
-        location = 'ClassA'
+        location = 'Classroom_STEM'
         name = 'class'
     npc = NPC(name='Alice', x=0, y=0)
     activity = Activity()

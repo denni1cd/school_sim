@@ -24,6 +24,22 @@ def resolve_data_path(path: str | Path) -> Path:
     return candidate
 
 
+def resolve_map_file(map_option: str | Path | None, default: str | Path) -> Path:
+    if not map_option:
+        return resolve_data_path(default)
+
+    candidate = Path(map_option)
+    if not candidate.suffix:
+        alias = candidate.name
+        data_dir = ROOT / 'data'
+        for pattern in (f'{alias}.json', f'campus_map_{alias}.json'):
+            alias_candidate = data_dir / pattern
+            if alias_candidate.exists():
+                return alias_candidate
+
+    return resolve_data_path(candidate)
+
+
 def _hhmm_to_minutes(hhmm: str) -> int:
     hours, minutes = map(int, hhmm.split(':'))
     return hours * 60 + minutes
@@ -32,12 +48,14 @@ def _hhmm_to_minutes(hhmm: str) -> int:
 class Simulation:
     """Core simulation loop shared by headless and interactive modes."""
 
-    def __init__(self, cfg: dict, grid: MapGrid | None = None):
+    def __init__(self, cfg: dict, grid: MapGrid | None = None, *, map_path: str | Path | None = None, schedule_path: str | Path | None = None):
         self.cfg = cfg
         data_cfg = cfg.get('data', {})
-        map_path = resolve_data_path(data_cfg.get('map_file', 'data/campus_map.json'))
-        schedule_path = resolve_data_path(data_cfg.get('npc_schedule_file', 'data/npc_schedules.json'))
-        self.grid = grid or MapGrid(str(map_path))
+        default_map = data_cfg.get('map_file', 'data/campus_map.json')
+        resolved_map = resolve_map_file(map_path, default_map)
+        schedule_source = schedule_path or data_cfg.get('npc_schedule_file', 'data/npc_schedules.json')
+        resolved_schedule = resolve_data_path(schedule_source)
+        self.grid = grid or MapGrid(str(resolved_map))
         self.rng = random.Random(cfg.get('random_seed', 1337))
         time_cfg = cfg['time']
         self.clock = GameClock(time_cfg['minutes_per_tick'], time_cfg['day_length_minutes'])
@@ -46,7 +64,7 @@ class Simulation:
 
         self.schedule_system = ScheduleSystem(
             self.grid,
-            str(schedule_path),
+            str(resolved_schedule),
             day_length_minutes=time_cfg['day_length_minutes'],
             rng=self.rng,
         )
@@ -57,9 +75,7 @@ class Simulation:
         messages_path = resolve_data_path(interactions_cfg.get('messages_file', 'config/interactions.yaml'))
         self._interaction_messages = self._load_interaction_messages(messages_path)
 
-        dorm_x, dorm_y = self.grid.room_center('Dorm')
         for npc in self.schedule_system.npcs:
-            npc.x, npc.y = dorm_x, dorm_y
             npc.state = NPCState.IDLE
             npc.target = None
             npc.path.clear()

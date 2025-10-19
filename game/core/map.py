@@ -7,6 +7,9 @@ class Room:
     name: str
     rect: Tuple[int, int, int, int]
     doors: Tuple[Tuple[int, int], ...]
+    room_type: str | None = None
+    capacity: int | None = None
+    default_activity: str | None = None
 
     def contains(self, x: int, y: int) -> bool:
         rx, ry, rw, rh = self.rect
@@ -26,8 +29,20 @@ class MapGrid:
         for room_data in data.get('rooms', []):
             rect = tuple(room_data['rect'])
             doors = tuple(tuple(pt) for pt in room_data.get('doors', []))
-            rooms[room_data['name']] = Room(room_data['name'], rect, doors)
+            rooms[room_data['name']] = Room(
+                room_data['name'],
+                rect,
+                doors,
+                room_data.get('room_type'),
+                room_data.get('capacity'),
+                room_data.get('default_activity'),
+            )
         self.rooms = rooms
+
+        spawns: Dict[str, Tuple[Tuple[int, int], ...]] = {}
+        for key, points in data.get('spawns', {}).items():
+            spawns[key.lower()] = tuple(tuple(pt) for pt in points)
+        self.spawns = spawns
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -53,4 +68,12 @@ class MapGrid:
             if room.contains(x, y):
                 return room
         return None
+
+    def spawn_points(self, role: str | None = None) -> Tuple[Tuple[int, int], ...]:
+        candidates: list[Tuple[int, int]] = []
+        if role:
+            role_key = role.lower()
+            candidates.extend(self.spawns.get(role_key, ()))
+        candidates.extend(self.spawns.get('default', ()))
+        return tuple(candidates)
 

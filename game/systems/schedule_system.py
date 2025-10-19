@@ -26,15 +26,16 @@ class ScheduleSystem:
             for key, value in data["activities"].items()
         }
         self.npcs: List[NPC] = []
-        self._default_spawn = self.mapgrid.room_center("Dorm")
+        self._default_spawn = self._choose_spawn()
         for npc_data in data["npcs"]:
             schedule = self._build_schedule(npc_data["schedule"])
-            spawn_x, spawn_y = self._spawn_point(schedule)
+            role = npc_data.get("role", "student")
+            spawn_x, spawn_y = self._spawn_point(schedule, role)
             npc = NPC(
                 name=npc_data["name"],
                 x=spawn_x,
                 y=spawn_y,
-                role=npc_data.get("role", "student"),
+                role=role,
                 schedule=schedule,
             )
             self.npcs.append(npc)
@@ -52,10 +53,42 @@ class ScheduleSystem:
         schedule.sort(key=lambda item: self._hhmm_to_minutes(item[0]))
         return schedule
 
-    def _spawn_point(self, schedule: List[Tuple[str, Activity]]) -> Tuple[int, int]:
+    def _spawn_point(self, schedule: List[Tuple[str, Activity]], role: str | None) -> Tuple[int, int]:
         if schedule:
             location = schedule[0][1].location
-            return self.mapgrid.room_center(location)
+            if location in self.mapgrid.rooms:
+                return self.mapgrid.room_center(location)
+        return self._choose_spawn(role=role)
+
+    def _choose_spawn(self, role: str | None = None) -> Tuple[int, int]:
+        candidates = list(self.mapgrid.spawn_points(role))
+        if candidates:
+            if self.rng is not None:
+                return self.rng.choice(candidates)
+            return candidates[0]
+
+        if role:
+            default = getattr(self, "_default_spawn", None)
+            if default:
+                return default
+
+        dorm_names = [
+            room.name
+            for room in self.mapgrid.rooms.values()
+            if (room.room_type or "").lower() == "dormitory"
+        ]
+        if dorm_names:
+            return self.mapgrid.room_center(dorm_names[0])
+
+        if self.mapgrid.rooms:
+            room = next(iter(self.mapgrid.rooms.values()))
+            rx, ry, rw, rh = room.rect
+            return rx + rw // 2, ry + rh // 2
+
+        return 0, 0
+
+    @property
+    def default_spawn(self) -> Tuple[int, int]:
         return self._default_spawn
 
     def update(self, hhmm: str) -> None:

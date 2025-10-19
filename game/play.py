@@ -11,7 +11,7 @@ import pygame
 from .actors.pc import Player
 from .config import load_config
 from .core.map import MapGrid
-from .simulation import Simulation, resolve_data_path
+from .simulation import Simulation, resolve_map_file
 from .systems.player_controller import InputState, PlayerController
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,7 +90,7 @@ def _draw_map(surface, grid: MapGrid, player: Player, simulation: Simulation, fo
         surface.blit(overlay, (16, surface.get_height() - 32))
 
 
-def run(profile: str | None = None) -> None:
+def run(profile: str | None = None, map_override: str | None = None) -> None:
     cfg = load_config(profile=profile)
 
     pygame.init()
@@ -98,7 +98,8 @@ def run(profile: str | None = None) -> None:
     pygame.display.set_caption('School Simulation Prototype - Milestone 7')
 
     data_cfg = cfg.get('data', {})
-    map_path = resolve_data_path(data_cfg.get('map_file', 'data/campus_map.json'))
+    default_map = data_cfg.get('map_file', 'data/campus_map.json')
+    map_path = resolve_map_file(map_override, default_map)
     grid = MapGrid(str(map_path))
     tile_size = grid.tile_size
     window_width = max(cfg['window']['width'], grid.width * tile_size)
@@ -108,7 +109,7 @@ def run(profile: str | None = None) -> None:
 
     player = Player(x=2, y=2)
     controller = PlayerController(grid, cfg['movement']['pc_speed_tiles_per_sec'])
-    simulation = Simulation(cfg, grid)
+    simulation = Simulation(cfg, grid, map_path=map_path)
     tick_rate = float(cfg['time']['tick_rate_hz'])
     tick_accumulator = 0.0
 
@@ -165,9 +166,14 @@ def run(profile: str | None = None) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the pygame school simulation viewer.')
     parser.add_argument('--profile', type=str, help='Configuration profile to load (overrides settings.yaml).')
+    parser.add_argument(
+        '--map',
+        dest='map_name',
+        help='Map file or alias to load (e.g. campus_map_v1 or data/campus_map_v1.json).',
+    )
     args = parser.parse_args()
     try:
-        run(profile=args.profile)
+        run(profile=args.profile, map_override=args.map_name)
     except KeyboardInterrupt:
         pygame.quit()
         sys.exit(0)

@@ -12,7 +12,7 @@ movement:
 map:
   tile_size: 48
 data:
-  map_file: data/campus_map.json
+  map_file: data/campus_map_v1.json
   npc_schedule_file: data/npc_schedules.json
 interactions:
   messages_file: config/interactions.yaml

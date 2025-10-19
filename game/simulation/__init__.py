@@ -6,15 +6,15 @@ from typing import Iterable, List, Set, Tuple
 
 import yaml
 
-from .actors.base_actor import NPCState
-from .actors.npc import NPC
-from .core.map import MapGrid
-from .core.time_clock import GameClock
-from .systems.activity_system import ActivitySystem
-from .systems.movement_system import MovementSystem
-from .systems.schedule_system import ScheduleSystem
+from ..actors.base_actor import NPCState
+from ..actors.npc import NPC
+from ..core.map import MapGrid
+from ..core.time_clock import GameClock
+from ..systems.activity_system import ActivitySystem
+from ..systems.movement_system import MovementSystem
+from ..systems.schedule_system import ScheduleSystem
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def resolve_data_path(path: str | Path) -> Path:

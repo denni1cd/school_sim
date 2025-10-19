@@ -1,0 +1,265 @@
+boarding_student:
+  weekday:
+    - slot: wake_block
+      start: "06:30"
+      duration: "00:30"
+      activity: wake
+      room: Dorm_North
+    - slot: breakfast
+      start: "07:00"
+      duration: "00:30"
+      activity: breakfast
+      room: Cafeteria
+      travel_buffer: "00:10"
+    - slot: morning_free
+      start: "07:45"
+      duration: "00:30"
+      activity: free
+      room: Courtyard
+    - slot: morning_class
+      start: "08:30"
+      duration: "03:00"
+      activity: class
+      room: Classroom_STEM
+      travel_buffer: "00:10"
+    - slot: lunch
+      start: "12:00"
+      duration: "01:00"
+      activity: lunch
+      room: Cafeteria
+      travel_buffer: "00:05"
+    - slot: afternoon_class
+      start: "13:15"
+      duration: "02:30"
+      activity: class
+      room: Classroom_Humanities
+    - slot: clubs
+      start: "16:00"
+      duration: "01:30"
+      activity: club
+      room: Classroom_Arts
+    - slot: dinner
+      start: "18:00"
+      duration: "01:00"
+      activity: dinner
+      room: Cafeteria
+    - slot: study_hall
+      start: "19:15"
+      duration: "02:00"
+      activity: study
+      room: Library
+    - slot: evening_social
+      start: "21:30"
+      duration: "00:45"
+      activity: free
+      room: Dorm_Commons
+    - slot: lights_out
+      start: "22:30"
+      duration: "08:00"
+      activity: lights_out_north
+      room: Dorm_North
+    - slot: lights_out_anchor
+      start: "23:30"
+      duration: "00:00"
+      activity: lights_out_north
+      room: Dorm_North
+
+athlete_student:
+  weekday:
+    - slot: wake_block
+      start: "06:00"
+      duration: "00:30"
+      activity: wake
+      room: Dorm_South
+    - slot: breakfast
+      start: "06:45"
+      duration: "00:30"
+      activity: breakfast
+      room: Cafeteria
+      travel_buffer: "00:15"
+    - slot: morning_class
+      start: "08:15"
+      duration: "03:00"
+      activity: class
+      room: Classroom_STEM
+    - slot: lunch
+      start: "12:15"
+      duration: "01:00"
+      activity: lunch
+      room: Cafeteria
+    - slot: afternoon_class
+      start: "13:30"
+      duration: "01:30"
+      activity: class
+      room: Classroom_STEM
+    - slot: practice
+      start: "15:30"
+      duration: "02:00"
+      activity: practice
+      room: Gymnasium
+      travel_buffer: "00:15"
+    - slot: dinner
+      start: "18:00"
+      duration: "01:00"
+      activity: dinner
+      room: Cafeteria
+    - slot: evening_study
+      start: "19:30"
+      duration: "01:30"
+      activity: study
+      room: Library
+    - slot: evening_walk
+      start: "21:15"
+      duration: "00:45"
+      activity: evening_walk
+      room: Courtyard
+    - slot: lights_out
+      start: "22:15"
+      duration: "08:00"
+      activity: lights_out_south
+      room: Dorm_South
+    - slot: lights_out_anchor
+      start: "23:30"
+      duration: "00:00"
+      activity: lights_out_south
+      room: Dorm_South
+
+prefect_student:
+  weekday:
+    - slot: wake_block
+      start: "06:15"
+      duration: "00:30"
+      activity: wake
+      room: Dorm_South
+    - slot: breakfast
+      start: "06:50"
+      duration: "00:30"
+      activity: breakfast
+      room: Cafeteria
+    - slot: morning_class
+      start: "08:20"
+      duration: "03:00"
+      activity: class
+      room: Classroom_STEM
+    - slot: lunch
+      start: "12:15"
+      duration: "01:00"
+      activity: lunch
+      room: Cafeteria
+    - slot: afternoon_class
+      start: "13:30"
+      duration: "02:00"
+      activity: class
+      room: Classroom_Humanities
+    - slot: club
+      start: "15:45"
+      duration: "01:30"
+      activity: club
+      room: Classroom_Arts
+    - slot: dinner
+      start: "18:00"
+      duration: "01:00"
+      activity: dinner
+      room: Cafeteria
+    - slot: prefect_rounds
+      start: "19:30"
+      duration: "01:00"
+      activity: prefect_rounds
+      room: Dorm_Commons
+    - slot: study
+      start: "20:45"
+      duration: "01:30"
+      activity: study
+      room: Library
+    - slot: lights_out
+      start: "22:15"
+      duration: "08:00"
+      activity: lights_out_south
+      room: Dorm_South
+    - slot: lights_out_anchor
+      start: "23:30"
+      duration: "00:00"
+      activity: lights_out_south
+      room: Dorm_South
+
+day_student:
+  weekday:
+    - slot: arrival
+      start: "07:45"
+      duration: "00:15"
+      activity: free
+      room: Administration
+    - slot: morning_class
+      start: "08:15"
+      duration: "03:00"
+      activity: class
+      room: Classroom_STEM
+    - slot: lunch
+      start: "12:00"
+      duration: "01:00"
+      activity: lunch
+      room: Cafeteria
+    - slot: afternoon_class
+      start: "13:30"
+      duration: "02:30"
+      activity: class
+      room: Classroom_Humanities
+    - slot: clubs
+      start: "16:15"
+      duration: "01:30"
+      activity: club
+      room: Classroom_Arts
+    - slot: departure
+      start: "18:00"
+      duration: "00:15"
+      activity: free
+      room: Courtyard
+
+librarian_staff:
+  weekday:
+    - slot: open_library
+      start: "07:45"
+      duration: "00:45"
+      activity: free
+      room: Library
+    - slot: morning_shift
+      start: "08:30"
+      duration: "04:00"
+      activity: librarian_shift
+      room: Library
+      travel_buffer: "00:05"
+    - slot: midday_break
+      start: "12:30"
+      duration: "01:00"
+      activity: library_break
+      room: Courtyard
+    - slot: afternoon_shift
+      start: "13:30"
+      duration: "03:00"
+      activity: librarian_shift
+      room: Library
+    - slot: close_library
+      start: "16:30"
+      duration: "02:00"
+      activity: librarian_close
+      room: Library
+    - slot: dinner
+      start: "18:30"
+      duration: "01:00"
+      activity: dinner
+      room: Cafeteria
+    - slot: evening_free
+      start: "19:45"
+      duration: "01:30"
+      activity: free
+      room: Dorm_Commons
+    - slot: lights_out
+      start: "21:30"
+      duration: "08:00"
+      activity: lights_out_north
+      room: Dorm_North
+    - slot: lights_out_anchor
+      start: "23:30"
+      duration: "00:00"
+      activity: lights_out_north
+      room: Dorm_North

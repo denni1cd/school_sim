@@ -1,8 +1,12 @@
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from .base_actor import Actor, NPCState
+
+
+if TYPE_CHECKING:
+    from ..simulation.schedule_generator import DailySchedule
 
 
 @dataclass
@@ -15,6 +19,7 @@ class NPC(Actor):
     current_activity_start_minutes: Optional[int] = None
     activity_remaining: int = 0
     pending_destination: Optional[Tuple[int, int]] = None
+    daily_plan: List["DailySchedule"] = field(default_factory=list)
 
     def assign_activity(self, activity, start_minutes: Optional[int] = None) -> None:
         self.pending_activity = activity

@@ -10,9 +10,9 @@ movement:
   pc_speed_tiles_per_sec: 3.0
   npc_speed_tiles_per_sec: 2.5
 map:
-  tile_size: 48
+  tile_size: 32
 data:
-  map_file: data/campus_map.json
-  npc_schedule_file: data/npc_schedules.json
+  map_file: data/campus_map_v1.json
+  npc_schedule_file: config/schedules/npc_assignments.yaml
 interactions:
   messages_file: config/interactions.yaml

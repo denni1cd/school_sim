@@ -13,7 +13,8 @@ PC_SPEED = CFG['movement']['pc_speed_tiles_per_sec']
 
 
 def _make_grid() -> MapGrid:
-    return MapGrid(str(Path('data') / 'campus_map.json'))
+    map_path = CFG['data']['map_file']
+    return MapGrid(str(Path(map_path)))
 
 
 def _make_controller(grid: MapGrid) -> PlayerController:

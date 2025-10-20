@@ -1,14 +1,12 @@
-
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from .base_actor import Actor, NPCState
 
-
 if TYPE_CHECKING:
+    from ..simulation.activities import Activity
     from ..simulation.schedule_generator import DailySchedule
     from ..systems.schedule_system import ScheduledActivity
-    from ..simulation.activities import Activity
 
 
 @dataclass
@@ -30,7 +28,13 @@ class NPC(Actor):
         self.pending_activity_start_minutes = start_minutes
         self.pending_destination = None
 
-    def begin_activity(self, activity, current_minutes: Optional[int] = None, *, day_length_minutes: Optional[int] = None) -> None:
+    def begin_activity(
+        self,
+        activity,
+        current_minutes: Optional[int] = None,
+        *,
+        day_length_minutes: Optional[int] = None,
+    ) -> None:
         start_minutes = self.pending_activity_start_minutes
         self.pending_schedule = None
         self.pending_activity = None

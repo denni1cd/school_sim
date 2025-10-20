@@ -17,7 +17,7 @@ This document captures the structure used by the Milestone B scheduling system.
 | `activity` | Activity key mapping to `activities.yaml`. |
 | `room` | Optional override for the activity’s default location. |
 | `travel_buffer` | Optional HH:MM buffer allocated for travel before the slot. |
-| `notes` | Optional human-readable description.
+| `notes` | Optional human-readable description. |
 | `profile` | Runtime-only `ActivityProfile` resolved via `config/activities.yaml` (available inside the engine). |
 
 ## Assignment Overrides

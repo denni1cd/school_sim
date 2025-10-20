@@ -4,7 +4,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 import yaml
 
@@ -20,6 +20,8 @@ from ..simulation.schedule_generator import (
     ScheduleTemplate,
     TravelEstimator,
     format_minutes,
+    parse_duration,
+    parse_hhmm,
 )
 from ..simulation.activities import ActivityCatalog, ActivityProfile
 
@@ -215,6 +217,125 @@ class ScheduleSystem:
             npc.daily_plan = list(blocks)
             self.npcs.append(npc)
 
+    def override_plan(
+        self,
+        actor_id: str,
+        overrides: Sequence[Mapping[str, object]],
+        *,
+        source: str = "principal_override",
+    ) -> List[DailySchedule]:
+        if actor_id not in self.daily_plan:
+            raise KeyError(f"Unknown actor '{actor_id}'")
+
+        day_length = self.day_length_minutes
+        blocks: List[DailySchedule] = []
+        for index, payload in enumerate(overrides):
+            if not isinstance(payload, Mapping):
+                continue
+            activity_value = payload.get("activity")
+            if not activity_value:
+                raise ValueError("Override block requires an activity")
+            start_value = payload.get("start")
+            duration_value = payload.get("duration")
+            room_value = payload.get("room")
+            notes_value = payload.get("notes")
+            travel_value = payload.get("travel_buffer")
+            slot_value = payload.get("slot") or f"{source}_{index}"
+
+            spec = self.activity_definitions.get(str(activity_value))
+            start_tick = parse_hhmm(str(start_value)) if start_value else 0
+            duration = (
+                parse_duration(str(duration_value))
+                if duration_value
+                else (spec.duration if spec else 0)
+            )
+            room_id = (
+                str(room_value)
+                if room_value
+                else (spec.location if spec else "")
+            )
+            notes = str(notes_value) if notes_value is not None else None
+            travel_buffer = (
+                parse_duration(str(travel_value))
+                if travel_value
+                else 0
+            )
+
+            block = DailySchedule(
+                actor_id=actor_id,
+                slot=str(slot_value),
+                activity_id=str(activity_value),
+                room_id=room_id,
+                start_tick=start_tick % day_length,
+                duration_minutes=max(duration, 0),
+                day_length_minutes=day_length,
+                notes=notes,
+                travel_buffer=max(travel_buffer, 0),
+            )
+            blocks.append(block)
+
+        if not blocks:
+            raise ValueError("Override requires at least one block")
+
+        blocks.sort(key=lambda item: item.start_tick)
+        self._daily_plan[actor_id] = list(blocks)
+        self.daily_plan[actor_id] = list(blocks)
+        self.assignment_specs.setdefault(actor_id, {})["override_source"] = source
+
+        self._recalculate_plans(actor_id=actor_id)
+        return self.daily_plan[actor_id]
+
+    def _recalculate_plans(self, actor_id: str | None = None) -> None:
+        travel_estimator = TravelEstimator(self.mapgrid)
+        travel_estimator.annotate(self.daily_plan, adjust_buffers=True)
+
+        flat_blocks: List[DailySchedule] = [
+            block
+            for blocks in self.daily_plan.values()
+            for block in blocks
+        ]
+        if flat_blocks:
+            self.detected_conflicts = detect_room_capacity_conflicts(
+                list(flat_blocks),
+                self.mapgrid.rooms,
+            )
+            self.conflicts = resolve_with_staggering(flat_blocks, self.mapgrid.rooms)
+            travel_estimator.annotate(self.daily_plan, adjust_buffers=False)
+        else:
+            self.detected_conflicts = []
+            self.conflicts = []
+
+        target_names = {actor_id} if actor_id else {npc.name for npc in self.npcs}
+        for npc in self.npcs:
+            if npc.name not in target_names:
+                continue
+            blocks = self.daily_plan.get(npc.name, [])
+            npc.schedule = self._build_schedule(blocks)
+            npc.daily_plan = list(blocks)
+            npc.pending_schedule = None
+            npc.pending_activity_start_minutes = None
+            npc.pending_destination = None
+            npc.target = None
+            npc.path.clear()
+
+        if actor_id and all(npc.name != actor_id for npc in self.npcs):
+            blocks = self.daily_plan.get(actor_id, [])
+            if blocks:
+                schedule = self._build_schedule(blocks)
+                spec = self.assignment_specs.get(actor_id, {})
+                role_value = spec.get("role", "student") if spec else "student"
+                role = str(role_value) if role_value else "student"
+                spawn_x, spawn_y = self._spawn_point(blocks, role)
+                npc = NPC(
+                    name=actor_id,
+                    x=spawn_x,
+                    y=spawn_y,
+                    role=role,
+                    schedule=schedule,
+                )
+                npc.daily_plan = list(blocks)
+                self.npcs.append(npc)
+
     def _build_schedule(self, blocks: List[DailySchedule]) -> List[Tuple[str, ScheduledActivity]]:
         schedule: List[Tuple[str, ScheduledActivity]] = []
         for block in blocks:
@@ -347,3 +468,4 @@ class ScheduleSystem:
         if self.activity_catalog is None:
             return None
         return self.activity_catalog.resolve(activity_id)
+

@@ -1,8 +1,8 @@
-from pathlib import Path
-
 import pytest
 
 from game.actors.base_actor import NPCState
+from pathlib import Path
+
 from game.config import load_config
 from game.simulation import Simulation, resolve_map_file
 

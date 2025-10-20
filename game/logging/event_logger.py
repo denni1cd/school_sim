@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 
 @dataclass
 class ActivityEvent:
-    """Structured entry for activity lifecycle changes."""
+    """Structured entry for activity lifecycle and principal changes."""
 
     kind: str
     timestamp: str
@@ -54,6 +54,28 @@ class EventLogger:
         state: Optional[Dict[str, Any]] = None,
     ) -> None:
         self._append("activity_interrupt", timestamp, npc=npc, activity=activity, room=room, state=state)
+
+    def log_principal_action(
+        self,
+        timestamp: str,
+        *,
+        action: str,
+        subject: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> None:
+        room = ""
+        if details and isinstance(details, Mapping):
+            room_value = details.get("room")
+            if isinstance(room_value, str):
+                room = room_value
+        self._append(
+            "principal_action",
+            timestamp,
+            npc=subject,
+            activity=action,
+            room=room,
+            state=dict(details or {}),
+        )
 
     def iter_events(self) -> Iterable[ActivityEvent]:
         return tuple(self._events)

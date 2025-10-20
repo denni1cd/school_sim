@@ -11,8 +11,10 @@ import pygame
 from .actors.pc import Player
 from .config import load_config
 from .core.map import MapGrid
+from .interface import PrincipalControls
 from .simulation import Simulation, resolve_map_file
 from .systems.player_controller import InputState, PlayerController
+from .ui.principal_overlay import format_overlay
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -110,6 +112,7 @@ def _draw_map(
         f"Time: {simulation.clock.get_time_str()}",
         "Controls: WASD / Arrow Keys",
         "Esc to exit, E to interact",
+        "Hold Tab: room activity overlay | Press P: principal console",
     ]
     if prompt:
         info_lines.append(prompt)
@@ -181,8 +184,11 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
     player.teleport_to_tile(spawn_x, spawn_y)
     controller = PlayerController(grid, cfg['movement']['pc_speed_tiles_per_sec'])
     simulation = Simulation(cfg, grid, map_path=map_path)
+    principal_controls = PrincipalControls(simulation)
     tick_rate = float(cfg['time']['tick_rate_hz'])
     tick_accumulator = 0.0
+
+    principal_overlay_visible = False
 
     message_text: Optional[str] = None
     message_timer = 0.0
@@ -198,6 +204,29 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.key == pygame.K_p:
+                    principal_overlay_visible = not principal_overlay_visible
+                elif (
+                    principal_overlay_visible
+                    and pygame.K_1 <= event.key <= pygame.K_9
+                ):
+                    alerts = simulation.alert_bus.active_alerts()
+                    index = event.key - pygame.K_1
+                    if index < len(alerts):
+                        principal_controls.mark_alert_resolved(alerts[index].id)
+                        message_text = f"Acknowledged {alerts[index].category}"
+                        message_timer = 2.0
+                elif (
+                    principal_overlay_visible
+                    and event.key == pygame.K_b
+                    and pygame.key.get_mods() & pygame.KMOD_SHIFT
+                ):
+                    principal_controls.broadcast_message(
+                        "Reminder: adhere to quiet hours",
+                        {"scope": "campus"},
+                    )
+                    message_text = "Broadcast issued"
+                    message_timer = 2.0
                 elif event.key == pygame.K_e:
                     npc, dist = _nearest_npc(player, simulation)
                     if npc and dist <= 1.5:
@@ -229,7 +258,10 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
             prompt = f"Press E to chat with {npc.name}"
 
         activity_overlay = None
-        if keys[pygame.K_TAB]:
+        if principal_overlay_visible:
+            alerts = simulation.alert_bus.active_alerts()
+            activity_overlay = format_overlay(alerts, principal_controls.recent_overrides())
+        elif keys[pygame.K_TAB]:
             tile_x = int(player.position[0])
             tile_y = int(player.position[1])
             room = grid.room_for_position(tile_x, tile_y)

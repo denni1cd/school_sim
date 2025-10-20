@@ -3,10 +3,10 @@
 This document captures the structure used by the Milestone B scheduling system.
 
 ## Files
-- `config/schedules/activities.yaml` — slot defaults for durations, locations, and notes (legacy compatibility).
-- `config/activities.yaml` — canonical activity catalog consumed by the factory to surface labels, interaction keys, and metadata.
-- `config/schedules/student_templates.yaml` — persona-driven schedule templates with `slot`, `start`, `duration`, `activity`, optional `room`, `travel_buffer`, and free-form `notes` per entry.
-- `config/schedules/npc_assignments.yaml` — roster describing which template each NPC uses along with slot-level overrides.
+- `config/schedules/activities.yaml` - slot defaults for durations, locations, and notes (legacy compatibility).
+- `config/activities.yaml` - canonical activity catalog consumed by the factory to surface labels, interaction keys, and metadata.
+- `config/schedules/student_templates.yaml` - persona-driven schedule templates with `slot`, `start`, `duration`, `activity`, optional `room`, `travel_buffer`, and free-form `notes` per entry.
+- `config/schedules/npc_assignments.yaml` - roster describing which template each NPC uses along with slot-level overrides.
 
 ## Daily Slot Fields
 | Field | Description |
@@ -15,7 +15,7 @@ This document captures the structure used by the Milestone B scheduling system.
 | `start` | HH:MM time the slot begins. |
 | `duration` | HH:MM duration of the slot. Required except for anchor rows. |
 | `activity` | Activity key mapping to `activities.yaml`. |
-| `room` | Optional override for the activity’s default location. |
+| `room` | Optional override for the activity''s default location. |
 | `travel_buffer` | Optional HH:MM buffer allocated for travel before the slot. |
 | `notes` | Optional human-readable description. |
 | `profile` | Runtime-only `ActivityProfile` resolved via `config/activities.yaml` (available inside the engine). |
@@ -35,7 +35,7 @@ Overrides are applied after template instantiation.
 
 ## Conflict Resolution
 - Room capacities are sourced from the campus map metadata.
-- When multiple NPCs exceed a room’s capacity, `resolve_with_staggering` pushes later slots forward in five-minute increments until the overlap clears.
+- When multiple NPCs exceed a room''s capacity, `resolve_with_staggering` pushes later slots forward in five-minute increments until the overlap clears.
 - Travel estimation recomputes after conflicts resolve so buffers and analytics reflect the final timeline.
 
 ## CSV Export

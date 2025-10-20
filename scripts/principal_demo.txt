@@ -1,0 +1,4 @@
+# Example command script for Milestone D principal controls
+schedule override Alice start=08:00 activity=study room=Library duration=01:30
+summon Bea Administration duration=00:20
+broadcast message="All students report to assembly" audience.role=student

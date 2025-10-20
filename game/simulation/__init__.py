@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
-from typing import Iterable, List, Set, Tuple, TYPE_CHECKING
+from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 import yaml
 
@@ -17,6 +17,7 @@ from ..world import RoomManager
 from .activities import ActivityCatalog
 
 if TYPE_CHECKING:
+    from ..notifications import AlertBus
     from ..systems.schedule_system import ScheduleSystem
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -94,8 +95,13 @@ class Simulation:
         self.activity_catalog = ActivityCatalog.load(catalog_path)
         self.room_manager = RoomManager(self.grid)
         self.event_logger = EventLogger()
+        notifications_cfg = cfg.get('notifications', {})
 
+        from ..notifications import AlertBus  # Lazy import to avoid circular dependency during initialization
         from ..systems.schedule_system import ScheduleSystem  # avoid circular import
+
+        cooldown = int(notifications_cfg.get('alert_cooldown_minutes', 10))
+        self.alert_bus = AlertBus(cooldown_minutes=cooldown)
 
         self.schedule_system = ScheduleSystem(
             self.grid,
@@ -125,6 +131,12 @@ class Simulation:
     @property
     def npcs(self) -> List[NPC]:
         return self.schedule_system.npcs
+
+    def get_npc(self, npc_id: str) -> Optional[NPC]:
+        return next((npc for npc in self.npcs if npc.name == npc_id), None)
+
+    def select_destination(self, room_name: str) -> Tuple[int, int]:
+        return self._select_destination(room_name)
 
     def _prime_initial_activities(self) -> None:
         day_length = self.clock.day_length_minutes
@@ -214,6 +226,7 @@ class Simulation:
             self._minute_accumulator -= 1.0
 
         self.clock.tick()
+        self._evaluate_alerts(current_minutes)
 
     def advance(self, ticks: int) -> None:
         for _ in range(ticks):
@@ -308,3 +321,82 @@ class Simulation:
             'activity_state': metadata,
         }
         return template.format(**context)
+    def _evaluate_alerts(self, current_minutes: int) -> None:
+        self._evaluate_capacity_alerts(current_minutes)
+        for npc in self.npcs:
+            self._check_missed_class(npc, current_minutes)
+            self._check_curfew(npc, current_minutes)
+
+    def _evaluate_capacity_alerts(self, current_minutes: int) -> None:
+        for room_id, room in self.grid.rooms.items():
+            if room.capacity is None:
+                continue
+            snapshot = self.room_manager.snapshot(room_id)
+            occupants = sorted(snapshot.occupants)
+            if len(occupants) <= room.capacity:
+                continue
+            severity = "medium"
+            overflow = len(occupants) - room.capacity
+            if overflow >= 3:
+                severity = "high"
+            self.alert_bus.publish(
+                "Overcapacity",
+                minute_stamp=current_minutes,
+                severity=severity,
+                message=f"{room_id} exceeds capacity {len(occupants)}/{room.capacity}",
+                room_id=room_id,
+                npc_ids=occupants,
+            )
+
+    def _check_missed_class(self, npc: NPC, current_minutes: int) -> None:
+        block = npc.pending_schedule
+        if block is None:
+            return
+        profile = block.profile or self.activity_catalog.resolve(block.name)
+        if profile is None:
+            return
+        if profile.canonical not in {"Studying", "Teaching"}:
+            return
+        start_minutes = npc.pending_activity_start_minutes
+        if start_minutes is None:
+            return
+        elapsed = self._minutes_since(current_minutes, start_minutes)
+        grace = 10 + (block.travel_buffer if block.travel_buffer else 0)
+        if elapsed <= grace:
+            return
+        room = self.grid.room_for_position(npc.x, npc.y)
+        if room and room.name == block.location:
+            return
+        self.alert_bus.publish(
+            "MissedClass",
+            minute_stamp=current_minutes,
+            severity="high",
+            message=f"{npc.name} has not arrived for {block.location} ({profile.label})",
+            room_id=block.location,
+            npc_ids=[npc.name],
+        )
+
+    def _check_curfew(self, npc: NPC, current_minutes: int) -> None:
+        curfew_start = 22 * 60
+        curfew_end = 6 * 60
+        within_curfew = current_minutes >= curfew_start or current_minutes < curfew_end
+        if not within_curfew:
+            return
+        activity = npc.current_activity
+        if activity and ("sleep" in activity.name.lower() or "sleep" in activity.label.lower() or "lights out" in activity.label.lower()):
+            return
+        room = self.grid.room_for_position(npc.x, npc.y)
+        if room and (room.room_type or "").lower() == "dormitory":
+            return
+        self.alert_bus.publish(
+            "CurfewViolation",
+            minute_stamp=current_minutes,
+            severity="medium",
+            message=f"{npc.name} is outside dorms during curfew",
+            room_id=room.name if room else None,
+            npc_ids=[npc.name],
+        )
+
+    def _minutes_since(self, current: int, start: int) -> int:
+        total = self.clock.day_length_minutes
+        return (current - start) % total

@@ -2,35 +2,35 @@
   "activities": {
     "sleep": {
       "duration": 480,
-      "location": "Dorm"
+      "location": "Dorm_North"
     },
     "class": {
       "duration": 180,
-      "location": "ClassA"
+      "location": "Classroom_STEM"
     },
     "lunch": {
       "duration": 60,
-      "location": "Cafe"
+      "location": "Cafeteria"
     },
     "free": {
       "duration": 240,
-      "location": "Hall"
+      "location": "Dorm_Commons"
     },
     "study": {
       "duration": 120,
-      "location": "ClassA"
+      "location": "Library"
     },
     "club": {
       "duration": 90,
-      "location": "Hall"
+      "location": "Classroom_Arts"
     },
     "errand": {
       "duration": 45,
-      "location": "Cafe"
+      "location": "Administration"
     },
     "evening_walk": {
       "duration": 60,
-      "location": "Hall"
+      "location": "Courtyard"
     },
     "librarian_shift": {
       "duration": 360,
@@ -38,7 +38,11 @@
     },
     "library_break": {
       "duration": 60,
-      "location": "LibraryHall"
+      "location": "Courtyard"
+    },
+    "sleep_south": {
+      "duration": 480,
+      "location": "Dorm_South"
     }
   },
   "npcs": [
@@ -152,12 +156,12 @@
         },
         {
           "time": "20:30",
-          "activity": "sleep",
+          "activity": "sleep_south",
           "jitter": 10
         },
         {
           "time": "23:30",
-          "activity": "sleep"
+          "activity": "sleep_south"
         }
       ]
     },
@@ -192,12 +196,12 @@
         },
         {
           "time": "22:00",
-          "activity": "sleep",
+          "activity": "sleep_south",
           "jitter": 10
         },
         {
           "time": "23:30",
-          "activity": "sleep"
+          "activity": "sleep_south"
         }
       ]
     },
@@ -232,12 +236,12 @@
         },
         {
           "time": "23:00",
-          "activity": "sleep",
+          "activity": "sleep_south",
           "jitter": 10
         },
         {
           "time": "23:30",
-          "activity": "sleep"
+          "activity": "sleep_south"
         }
       ]
     },
@@ -272,12 +276,12 @@
         },
         {
           "time": "21:45",
-          "activity": "sleep",
+          "activity": "sleep_south",
           "jitter": 10
         },
         {
           "time": "23:30",
-          "activity": "sleep"
+          "activity": "sleep_south"
         }
       ]
     },

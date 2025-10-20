@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 import yaml
 
@@ -13,9 +13,12 @@ from ..core.time_clock import GameClock
 from ..logging import EventLogger
 from ..systems.activity_system import ActivitySystem
 from ..systems.movement_system import MovementSystem
-from ..systems.schedule_system import ScheduleSystem
 from ..world import RoomManager
 from .activities import ActivityCatalog
+
+if TYPE_CHECKING:
+    from ..notifications import AlertBus
+    from ..systems.schedule_system import ScheduleSystem
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -39,15 +42,16 @@ def resolve_map_file(map_option: str | Path | None, default: str | Path) -> Path
 
     candidate = Path(map_option)
     if not candidate.suffix:
-        alias = candidate.name.lower()
+        alias_lower = candidate.name.lower()
         alias_map = {
             'campus_map': 'data/campus_map_v1.json',
             'campus_map_v1': 'data/campus_map_v1.json',
             'v1': 'data/campus_map_v1.json',
         }
-        if alias in alias_map:
-            return resolve_data_path(alias_map[alias])
+        if alias_lower in alias_map:
+            return resolve_data_path(alias_map[alias_lower])
 
+        alias = candidate.name
         data_dir = ROOT / 'data'
         for pattern in (f'{alias}.json', f'campus_map_{alias}.json'):
             alias_candidate = data_dir / pattern
@@ -65,7 +69,14 @@ def _hhmm_to_minutes(hhmm: str) -> int:
 class Simulation:
     """Core simulation loop shared by headless and interactive modes."""
 
-    def __init__(self, cfg: dict, grid: MapGrid | None = None, *, map_path: str | Path | None = None, schedule_path: str | Path | None = None):
+    def __init__(
+        self,
+        cfg: dict,
+        grid: MapGrid | None = None,
+        *,
+        map_path: str | Path | None = None,
+        schedule_path: str | Path | None = None,
+    ) -> None:
         self.cfg = cfg
         data_cfg = cfg.get('data', {})
         default_map = data_cfg.get('map_file', 'data/campus_map.json')
@@ -85,7 +96,10 @@ class Simulation:
         self.room_manager = RoomManager(self.grid)
         self.event_logger = EventLogger()
         notifications_cfg = cfg.get('notifications', {})
+
         from ..notifications import AlertBus  # Lazy import to avoid circular dependency during initialization
+        from ..systems.schedule_system import ScheduleSystem  # avoid circular import
+
         cooldown = int(notifications_cfg.get('alert_cooldown_minutes', 10))
         self.alert_bus = AlertBus(cooldown_minutes=cooldown)
 
@@ -188,16 +202,27 @@ class Simulation:
                 arrived = self.movement_system.step(npc, occupied, steps=1)
                 occupied.add((npc.x, npc.y))
                 if arrived:
-                    self.activity_system.on_arrival(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                    self.activity_system.on_arrival(
+                        npc,
+                        current_minutes=current_minutes,
+                        day_length_minutes=day_length,
+                    )
             else:
-                self.activity_system.start_if_ready(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                self.activity_system.start_if_ready(
+                    npc,
+                    current_minutes=current_minutes,
+                    day_length_minutes=day_length,
+                )
 
         self._minute_accumulator += self._minutes_per_tick
         minute_cursor = int(self.clock.minute) % day_length
         while self._minute_accumulator >= 1.0:
             minute_cursor = (minute_cursor + 1) % day_length
             for npc in self.npcs:
-                self.activity_system.tick_minute(npc, current_minutes=minute_cursor)
+                self.activity_system.tick_minute(
+                    npc,
+                    current_minutes=minute_cursor,
+                )
             self._minute_accumulator -= 1.0
 
         self.clock.tick()
@@ -214,7 +239,10 @@ class Simulation:
     def snapshot(self) -> dict:
         return {
             'time': self.clock.get_time_str(),
-            'npc_states': {npc.name: {'state': npc.state.value, 'position': (npc.x, npc.y)} for npc in self.npcs},
+            'npc_states': {
+                npc.name: {'state': npc.state.value, 'position': (npc.x, npc.y)}
+                for npc in self.npcs
+            },
         }
 
     def interact_with(self, npc: NPC) -> str:
@@ -293,7 +321,6 @@ class Simulation:
             'activity_state': metadata,
         }
         return template.format(**context)
-
     def _evaluate_alerts(self, current_minutes: int) -> None:
         self._evaluate_capacity_alerts(current_minutes)
         for npc in self.npcs:
@@ -308,12 +335,12 @@ class Simulation:
             occupants = sorted(snapshot.occupants)
             if len(occupants) <= room.capacity:
                 continue
-            severity = 'medium'
+            severity = "medium"
             overflow = len(occupants) - room.capacity
             if overflow >= 3:
-                severity = 'high'
+                severity = "high"
             self.alert_bus.publish(
-                'Overcapacity',
+                "Overcapacity",
                 minute_stamp=current_minutes,
                 severity=severity,
                 message=f"{room_id} exceeds capacity {len(occupants)}/{room.capacity}",
@@ -328,7 +355,7 @@ class Simulation:
         profile = block.profile or self.activity_catalog.resolve(block.name)
         if profile is None:
             return
-        if profile.canonical not in {'Studying', 'Teaching'}:
+        if profile.canonical not in {"Studying", "Teaching"}:
             return
         start_minutes = npc.pending_activity_start_minutes
         if start_minutes is None:
@@ -341,9 +368,9 @@ class Simulation:
         if room and room.name == block.location:
             return
         self.alert_bus.publish(
-            'MissedClass',
+            "MissedClass",
             minute_stamp=current_minutes,
-            severity='high',
+            severity="high",
             message=f"{npc.name} has not arrived for {block.location} ({profile.label})",
             room_id=block.location,
             npc_ids=[npc.name],
@@ -356,15 +383,15 @@ class Simulation:
         if not within_curfew:
             return
         activity = npc.current_activity
-        if activity and ('sleep' in activity.name.lower() or 'sleep' in activity.label.lower() or 'lights out' in activity.label.lower()):
+        if activity and ("sleep" in activity.name.lower() or "sleep" in activity.label.lower() or "lights out" in activity.label.lower()):
             return
         room = self.grid.room_for_position(npc.x, npc.y)
-        if room and (room.room_type or '').lower() == 'dormitory':
+        if room and (room.room_type or "").lower() == "dormitory":
             return
         self.alert_bus.publish(
-            'CurfewViolation',
+            "CurfewViolation",
             minute_stamp=current_minutes,
-            severity='medium',
+            severity="medium",
             message=f"{npc.name} is outside dorms during curfew",
             room_id=room.name if room else None,
             npc_ids=[npc.name],
@@ -373,4 +400,3 @@ class Simulation:
     def _minutes_since(self, current: int, start: int) -> int:
         total = self.clock.day_length_minutes
         return (current - start) % total
-

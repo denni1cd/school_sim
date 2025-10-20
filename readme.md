@@ -14,14 +14,12 @@ make test
 ```
 
 ### Principal Controls (Milestone D)
-- Press `P` in the pygame client to open the principal console overlay. While it is open you can acknowledge alerts with the
-  number keys or issue a placeholder campus broadcast with `Shift+B`.
+- Press `P` in the pygame client to open the principal console overlay. While it is open you can acknowledge alerts with the number keys or issue a placeholder campus broadcast with `Shift+B`.
 - Feed scripted commands to the headless simulator via `--commands`:
   ```bash
   python -m game.simulation --ticks 600 --commands scripts/principal_demo.txt
   ```
-  The command dispatcher understands schedule overrides, summons, alert acknowledgements, and broadcasts. See
-  `docs/principal_controls.md` for the full syntax.
+  The command dispatcher understands schedule overrides, summons, alert acknowledgements, and broadcasts. See `docs/principal_controls.md` for the full syntax.
 
 ### Map Selection
 - Default sandbox loads `data/campus_map_v1.json`, a full boarding school layout with dorm wings, classrooms, cafeteria, and support spaces.
@@ -36,5 +34,4 @@ make test
 - Interaction text can incorporate activity labels and metadata, while the Pygame client displays a Tab-activated overlay summarizing the current room's occupants and tasks.
 - Principal management hooks provide CLI and overlay tooling for schedule overrides, summons, alerts, and broadcasts; alerts are published for over-capacity rooms, missed classes, and curfew violations.
 - `tests/activities/` verifies factory wiring and room reporting; scheduling, simulation, and interaction suites exercise the integrated flow end-to-end.
-
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
@@ -54,6 +55,28 @@ class EventLogger:
     ) -> None:
         self._append("activity_interrupt", timestamp, npc=npc, activity=activity, room=room, state=state)
 
+    def log_principal_action(
+        self,
+        timestamp: str,
+        *,
+        action: str,
+        subject: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> None:
+        room = ""
+        if details and isinstance(details, Mapping):
+            room_value = details.get("room")
+            if isinstance(room_value, str):
+                room = room_value
+        self._append(
+            "principal_action",
+            timestamp,
+            npc=subject,
+            activity=action,
+            room=room,
+            state=dict(details or {}),
+        )
+
     def iter_events(self) -> Iterable[ActivityEvent]:
         return tuple(self._events)
 
@@ -79,25 +102,3 @@ class EventLogger:
             state=dict(state or {}),
         )
         self._events.append(payload)
-
-    def log_principal_action(
-        self,
-        timestamp: str,
-        *,
-        action: str,
-        subject: str,
-        details: Mapping[str, Any] | None = None,
-    ) -> None:
-        room = ""
-        if details and isinstance(details, Mapping):
-            room_value = details.get("room")
-            if isinstance(room_value, str):
-                room = room_value
-        self._append(
-            "principal_action",
-            timestamp,
-            npc=subject,
-            activity=action,
-            room=room,
-            state=dict(details or {}),
-        )

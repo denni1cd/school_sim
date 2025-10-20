@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from game.core.map import MapGrid
-from game.systems.schedule_system import ScheduleSystem
 from game.simulation.activities import ActivityCatalog
+from game.systems.schedule_system import ScheduleSystem
 
 
 def test_schedule_loads_and_creates_npcs(tmp_path):

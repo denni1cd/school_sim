@@ -4,7 +4,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple
 
 import yaml
 
@@ -20,8 +20,6 @@ from ..simulation.schedule_generator import (
     ScheduleTemplate,
     TravelEstimator,
     format_minutes,
-    parse_duration,
-    parse_hhmm,
 )
 from ..simulation.activities import ActivityCatalog, ActivityProfile
 
@@ -238,83 +236,6 @@ class ScheduleSystem:
             schedule.append((format_minutes(block.start_tick), activity))
         schedule.sort(key=lambda item: self._hhmm_to_minutes(item[0]))
         return schedule
-
-    def override_plan(
-        self,
-        actor_id: str,
-        overrides: Sequence[Mapping[str, object]],
-        *,
-        source: str = "override",
-    ) -> List[DailySchedule]:
-        if actor_id not in self.daily_plan:
-            raise KeyError(f"Unknown actor '{actor_id}'")
-        blocks: List[DailySchedule] = []
-        for index, payload in enumerate(overrides):
-            if not isinstance(payload, Mapping):
-                raise ValueError("Override entries must be mappings")
-            activity_id = str(payload.get("activity") or "").strip()
-            if not activity_id:
-                raise ValueError("Override block requires an activity")
-            start_raw = payload.get("start")
-            duration_raw = payload.get("duration")
-            room_raw = payload.get("room")
-            notes_raw = payload.get("notes")
-            start_tick = parse_hhmm(str(start_raw)) if start_raw else 0
-            spec = self.activity_definitions.get(activity_id)
-            duration = parse_duration(str(duration_raw)) if duration_raw else (spec.duration if spec else 0)
-            room_id = str(room_raw) if room_raw else (spec.location if spec else "")
-            notes = str(notes_raw) if notes_raw is not None else f"{source}"
-            block = DailySchedule(
-                actor_id=actor_id,
-                slot=f"override_{index}",
-                activity_id=activity_id,
-                room_id=room_id,
-                start_tick=start_tick,
-                duration_minutes=duration,
-                day_length_minutes=self.day_length_minutes,
-                notes=notes,
-            )
-            blocks.append(block)
-        blocks.sort(key=lambda item: item.start_tick)
-        self.daily_plan[actor_id] = blocks
-        self._daily_plan[actor_id] = list(blocks)
-        self._apply_daily_plan(actor_id, blocks, reset_pending=True)
-        self._recalculate_plans()
-        return blocks
-
-    def _apply_daily_plan(
-        self,
-        actor_id: str,
-        blocks: List[DailySchedule],
-        *,
-        reset_pending: bool = False,
-    ) -> None:
-        npc = next((candidate for candidate in self.npcs if candidate.name == actor_id), None)
-        schedule = self._build_schedule(blocks)
-        if npc is not None:
-            npc.daily_plan = list(blocks)
-            npc.schedule = schedule
-            if reset_pending:
-                npc.pending_schedule = None
-                npc.pending_destination = None
-                npc.pending_activity = None
-                npc.pending_activity_start_minutes = None
-        if reset_pending:
-            self.assignment_specs.setdefault(actor_id, {})["override_source"] = True
-
-    def _recalculate_plans(self) -> None:
-        travel_estimator = TravelEstimator(self.mapgrid)
-        travel_estimator.annotate(self.daily_plan, adjust_buffers=True)
-        flat_blocks: List[DailySchedule] = [block for blocks in self.daily_plan.values() for block in blocks]
-        if flat_blocks:
-            self.detected_conflicts = detect_room_capacity_conflicts(list(flat_blocks), self.mapgrid.rooms)
-            self.conflicts = resolve_with_staggering(flat_blocks, self.mapgrid.rooms)
-            travel_estimator.annotate(self.daily_plan, adjust_buffers=False)
-        else:
-            self.detected_conflicts = []
-            self.conflicts = []
-        for actor_id, blocks in self.daily_plan.items():
-            self._apply_daily_plan(actor_id, blocks, reset_pending=False)
 
     def _spawn_point(self, blocks: List[DailySchedule], role: str | None) -> Tuple[int, int]:
         for block in blocks:

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Mapping, MutableMapping, Sequence
+from typing import Iterable, List, Mapping, MutableMapping, Sequence, TYPE_CHECKING
 
 from ..actors.base_actor import NPCState
-from ..notifications import AlertBus
 from ..simulation.schedule_generator import DailySchedule, format_minutes
 from ..systems.schedule_system import ScheduledActivity
+
+if TYPE_CHECKING:
+    from ..notifications import AlertBus
+
 
 if False:  # pragma: no cover - type checking helper
     from ..simulation import Simulation
@@ -28,7 +31,7 @@ class PrincipalControls:
         self._history: List[OverrideRecord] = []
 
     @property
-    def alert_bus(self) -> AlertBus:
+    def alert_bus(self) -> 'AlertBus':
         return self._simulation.alert_bus
 
     def override_schedule(
@@ -132,3 +135,4 @@ class PrincipalControls:
 
     def recent_overrides(self, limit: int = 5) -> Iterable[OverrideRecord]:
         return self._history[-limit:]
+

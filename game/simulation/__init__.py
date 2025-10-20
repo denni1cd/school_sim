@@ -11,7 +11,6 @@ from ..actors.npc import NPC
 from ..core.map import MapGrid
 from ..core.time_clock import GameClock
 from ..logging import EventLogger
-from ..notifications import AlertBus
 from ..systems.activity_system import ActivitySystem
 from ..systems.movement_system import MovementSystem
 from ..systems.schedule_system import ScheduleSystem
@@ -86,6 +85,7 @@ class Simulation:
         self.room_manager = RoomManager(self.grid)
         self.event_logger = EventLogger()
         notifications_cfg = cfg.get('notifications', {})
+        from ..notifications import AlertBus  # Lazy import to avoid circular dependency during initialization
         cooldown = int(notifications_cfg.get('alert_cooldown_minutes', 10))
         self.alert_bus = AlertBus(cooldown_minutes=cooldown)
 
@@ -373,3 +373,4 @@ class Simulation:
     def _minutes_since(self, current: int, start: int) -> int:
         total = self.clock.day_length_minutes
         return (current - start) % total
+

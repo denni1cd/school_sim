@@ -20,9 +20,10 @@ make test
   - `python -m game.app --ticks 1200 --map data/campus_map_m5.json`
 
 ## Milestone 8 snapshot
-- `config/interactions.yaml` defines room/role/activity messages; defaults merge via the shared config loader.
-- Simulation surfaces context-aware interaction text using room metadata and current activities, seeds the first daily activity for every NPC, and activity timers now account for late arrivals so tasks last their intended duration.
-- Pygame client inherits the richer messages automatically; no new controls required.
-- `tests/test_interactions.py` validates library and MakerLab dialogues so regressions are caught early.
+- `config/interactions.yaml` still supplies role and room templates, now enriched with activity keys emitted by the factory.
+- Activity catalog (`config/activities.yaml`) drives a hierarchy of activity classes with room-aware defaults, interaction keys, and placeholder metadata exposed through the factory.
+- Simulation now records structured activity start/end/interrupt events, updates room occupancy summaries via `RoomManager`, and exposes the stream through `simulation.event_logger` or `python -m game.simulation --log-activities -`.
+- Interaction text can incorporate activity labels and metadata, while the Pygame client displays a Tab-activated overlay summarizing the current room's occupants and tasks.
+- `tests/activities/` verifies factory wiring and room reporting; scheduling, simulation, and interaction suites exercise the integrated flow end-to-end.
 
 

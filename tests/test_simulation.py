@@ -1,8 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 from game.actors.base_actor import NPCState
 from game.config import load_config
-from game.simulation import Simulation
+from game.simulation import Simulation, resolve_map_file
 
 CFG = load_config()
 
@@ -70,3 +72,20 @@ def test_destinations_move_npcs_inside_rooms():
     for _ in range(10):
         dest = simulation._select_destination(room.name)
         assert dest not in doors
+
+
+def test_activity_logging_collects_events():
+    simulation = Simulation(CFG)
+    _advance(simulation, 180)
+    events = list(simulation.event_logger.iter_events())
+    assert events, 'Expected activity events to be recorded.'
+    sample = events[0]
+    assert sample.kind in {'activity_start', 'activity_end', 'activity_interrupt'}
+    assert sample.activity
+
+
+def test_campus_map_alias_uses_latest_layout():
+    project_root = Path(__file__).resolve().parents[1]
+    expected = project_root / 'data' / 'campus_map_v1.json'
+    resolved = resolve_map_file('campus_map', 'data/campus_map_v1.json')
+    assert resolved == expected

@@ -1,16 +1,23 @@
 from pathlib import Path
 
 from game.core.map import MapGrid
+from game.simulation.activities import ActivityCatalog
 from game.systems.schedule_system import ScheduleSystem
 
 
 def test_schedule_loads_and_creates_npcs(tmp_path):
     grid = MapGrid(str(Path('data') / 'campus_map_v1.json'))
-    sched = ScheduleSystem(grid, str(Path('config') / 'schedules' / 'npc_assignments.yaml'))
+    catalog = ActivityCatalog.load('config/activities.yaml')
+    sched = ScheduleSystem(
+        grid,
+        str(Path('config') / 'schedules' / 'npc_assignments.yaml'),
+        activity_catalog=catalog,
+    )
     assert len(sched.npcs) >= 2
 
     t, act = sched.npcs[0].schedule[0]
     assert isinstance(t, str) and hasattr(act, 'name')
+    assert act.profile is not None
 
     # Ensure spawn points respect role-aware configuration.
     student_spawns = {npc.name: (npc.x, npc.y) for npc in sched.npcs if npc.role == 'student'}

@@ -10,8 +10,11 @@ from ..actors.base_actor import NPCState
 from ..actors.npc import NPC
 from ..core.map import MapGrid
 from ..core.time_clock import GameClock
+from ..logging import EventLogger
 from ..systems.activity_system import ActivitySystem
 from ..systems.movement_system import MovementSystem
+from ..world import RoomManager
+from .activities import ActivityCatalog
 
 if TYPE_CHECKING:
     from ..systems.schedule_system import ScheduleSystem
@@ -38,6 +41,15 @@ def resolve_map_file(map_option: str | Path | None, default: str | Path) -> Path
 
     candidate = Path(map_option)
     if not candidate.suffix:
+        alias_lower = candidate.name.lower()
+        alias_map = {
+            'campus_map': 'data/campus_map_v1.json',
+            'campus_map_v1': 'data/campus_map_v1.json',
+            'v1': 'data/campus_map_v1.json',
+        }
+        if alias_lower in alias_map:
+            return resolve_data_path(alias_map[alias_lower])
+
         alias = candidate.name
         data_dir = ROOT / 'data'
         for pattern in (f'{alias}.json', f'campus_map_{alias}.json'):
@@ -56,7 +68,14 @@ def _hhmm_to_minutes(hhmm: str) -> int:
 class Simulation:
     """Core simulation loop shared by headless and interactive modes."""
 
-    def __init__(self, cfg: dict, grid: MapGrid | None = None, *, map_path: str | Path | None = None, schedule_path: str | Path | None = None):
+    def __init__(
+        self,
+        cfg: dict,
+        grid: MapGrid | None = None,
+        *,
+        map_path: str | Path | None = None,
+        schedule_path: str | Path | None = None,
+    ) -> None:
         self.cfg = cfg
         data_cfg = cfg.get('data', {})
         default_map = data_cfg.get('map_file', 'data/campus_map.json')
@@ -70,6 +89,12 @@ class Simulation:
         self._minutes_per_tick = float(time_cfg['minutes_per_tick'])
         self._minute_accumulator = 0.0
 
+        activities_cfg = cfg.get('activities', {})
+        catalog_path = resolve_data_path(activities_cfg.get('catalog_file', 'config/activities.yaml'))
+        self.activity_catalog = ActivityCatalog.load(catalog_path)
+        self.room_manager = RoomManager(self.grid)
+        self.event_logger = EventLogger()
+
         from ..systems.schedule_system import ScheduleSystem  # avoid circular import
 
         self.schedule_system = ScheduleSystem(
@@ -77,8 +102,13 @@ class Simulation:
             str(resolved_schedule),
             day_length_minutes=time_cfg['day_length_minutes'],
             rng=self.rng,
+            activity_catalog=self.activity_catalog,
         )
-        self.activity_system = ActivitySystem()
+        self.activity_system = ActivitySystem(
+            catalog=self.activity_catalog,
+            room_manager=self.room_manager,
+            event_logger=self.event_logger,
+        )
         self.movement_system = MovementSystem(self.grid)
 
         interactions_cfg = cfg.get('interactions', {})
@@ -126,23 +156,32 @@ class Simulation:
         occupied: Set[Tuple[int, int]] = {(npc.x, npc.y) for npc in self.npcs}
 
         for npc in self.npcs:
-            if npc.pending_activity:
+            block = npc.pending_schedule
+            if block:
                 room = self.grid.room_for_position(npc.x, npc.y)
-                if room and room.name == npc.pending_activity.location:
+                if room and room.name == block.location:
                     npc.pending_destination = None
                     npc.target = None
                     npc.path.clear()
                     npc.state = NPCState.IDLE
-                    self.activity_system.start_if_ready(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                    self.activity_system.start_if_ready(
+                        npc,
+                        current_minutes=current_minutes,
+                        day_length_minutes=day_length,
+                    )
                     continue
                 if npc.pending_destination is None:
-                    npc.pending_destination = self._select_destination(npc.pending_activity.location)
+                    npc.pending_destination = self._select_destination(block.location)
                 destination = npc.pending_destination
                 if (npc.x, npc.y) != destination:
                     npc.set_target(*destination)
                 else:
                     npc.target = None
-                    self.activity_system.start_if_ready(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                    self.activity_system.start_if_ready(
+                        npc,
+                        current_minutes=current_minutes,
+                        day_length_minutes=day_length,
+                    )
 
             if npc.target:
                 blocked = occupied - {(npc.x, npc.y)}
@@ -151,14 +190,27 @@ class Simulation:
                 arrived = self.movement_system.step(npc, occupied, steps=1)
                 occupied.add((npc.x, npc.y))
                 if arrived:
-                    self.activity_system.on_arrival(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                    self.activity_system.on_arrival(
+                        npc,
+                        current_minutes=current_minutes,
+                        day_length_minutes=day_length,
+                    )
             else:
-                self.activity_system.start_if_ready(npc, current_minutes=current_minutes, day_length_minutes=day_length)
+                self.activity_system.start_if_ready(
+                    npc,
+                    current_minutes=current_minutes,
+                    day_length_minutes=day_length,
+                )
 
         self._minute_accumulator += self._minutes_per_tick
+        minute_cursor = int(self.clock.minute) % day_length
         while self._minute_accumulator >= 1.0:
+            minute_cursor = (minute_cursor + 1) % day_length
             for npc in self.npcs:
-                self.activity_system.tick_minute(npc)
+                self.activity_system.tick_minute(
+                    npc,
+                    current_minutes=minute_cursor,
+                )
             self._minute_accumulator -= 1.0
 
         self.clock.tick()
@@ -174,17 +226,21 @@ class Simulation:
     def snapshot(self) -> dict:
         return {
             'time': self.clock.get_time_str(),
-            'npc_states': {npc.name: {'state': npc.state.value, 'position': (npc.x, npc.y)} for npc in self.npcs},
+            'npc_states': {
+                npc.name: {'state': npc.state.value, 'position': (npc.x, npc.y)}
+                for npc in self.npcs
+            },
         }
 
     def interact_with(self, npc: NPC) -> str:
         message = self._format_interaction(npc)
         if message:
             return message
-        activity_name = getattr(getattr(npc, 'current_activity', None), 'name', None)
-        if activity_name:
-            description = activity_name.replace('_', ' ')
-            return f"(Placeholder) {npc.name} says: I'm in the middle of {description}."
+        activity = getattr(npc, 'current_activity', None)
+        if activity:
+            label = getattr(activity, 'label', getattr(activity, 'name', 'an activity'))
+            room_label = getattr(activity, 'room_id', 'somewhere')
+            return f"(Placeholder) {npc.name} is {label.lower()} in {room_label}."
         return f"(Placeholder) {npc.name} says hello."
 
     def _select_destination(self, room_name: str) -> Tuple[int, int]:
@@ -219,10 +275,14 @@ class Simulation:
         messages = getattr(self, '_interaction_messages', None)
         if not messages:
             return None
-        activity_name = getattr(getattr(npc, 'current_activity', None), 'name', None)
+        activity = getattr(npc, 'current_activity', None)
+        activity_name = getattr(activity, 'name', None)
+        interaction_key = getattr(activity, 'interaction_key', None)
         room = self.grid.room_for_position(npc.x, npc.y)
         template = None
-        if activity_name:
+        if interaction_key:
+            template = messages['activities'].get(interaction_key)
+        if template is None and activity_name:
             template = messages['activities'].get(activity_name)
         if template is None and room is not None:
             template = messages['rooms'].get(room.name)
@@ -233,12 +293,18 @@ class Simulation:
             template = messages.get('default')
         if not template:
             return None
-        activity_desc = activity_name.replace('_', ' ') if activity_name else ''
+        activity_label = None
+        if activity is not None:
+            activity_label = getattr(activity, 'label', None)
+        if not activity_label and activity_name:
+            activity_label = activity_name.replace('_', ' ')
+        metadata = getattr(getattr(activity, 'state', None), 'metadata', {}) or {}
         context = {
             'name': npc.name,
             'role': role,
-            'activity': activity_name or '',
-            'activity_description': activity_desc,
+            'activity': activity_label or '',
+            'activity_description': activity_label or '',
             'room': room.name if room is not None else '',
+            'activity_state': metadata,
         }
         return template.format(**context)

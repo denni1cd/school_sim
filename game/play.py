@@ -50,6 +50,7 @@ def _draw_map(
     message: Optional[str],
     offset_x: int,
     offset_y: int,
+    activity_overlay: Optional[list[str]] = None,
 ) -> None:
     tile_size = grid.tile_size
     surface.fill(BACKGROUND)
@@ -119,6 +120,13 @@ def _draw_map(
     if message:
         overlay = font.render(message, True, TEXT_COLOR)
         surface.blit(overlay, (16, surface.get_height() - 32))
+
+    if activity_overlay:
+        base_x = surface.get_width() - 320
+        base_y = 16
+        for idx, line in enumerate(activity_overlay):
+            text_surface = font.render(line, True, TEXT_COLOR)
+            surface.blit(text_surface, (base_x, base_y + idx * 20))
 
 
 def run(profile: str | None = None, map_override: str | None = None) -> None:
@@ -220,7 +228,38 @@ def run(profile: str | None = None, map_override: str | None = None) -> None:
         if npc and dist <= 1.5:
             prompt = f"Press E to chat with {npc.name}"
 
-        _draw_map(surface, grid, player, simulation, font, prompt, message_text, offset_x, offset_y)
+        activity_overlay = None
+        if keys[pygame.K_TAB]:
+            tile_x = int(player.position[0])
+            tile_y = int(player.position[1])
+            room = grid.room_for_position(tile_x, tile_y)
+            if room:
+                snapshot = simulation.room_manager.snapshot(room.name)
+                lines = [f"{room.name}: {len(snapshot.occupants)} occupants"]
+                if snapshot.activity_counts:
+                    for label, count in sorted(snapshot.activity_counts.items()):
+                        lines.append(f" - {label}: {count}")
+                else:
+                    lines.append(" - no active tasks")
+                if snapshot.occupants:
+                    occupants = ', '.join(sorted(snapshot.occupants))
+                    lines.append(f"   occupants: {occupants}")
+                activity_overlay = lines
+            else:
+                activity_overlay = ["Outside of defined rooms"]
+
+        _draw_map(
+            surface,
+            grid,
+            player,
+            simulation,
+            font,
+            prompt,
+            message_text,
+            offset_x,
+            offset_y,
+            activity_overlay,
+        )
         pygame.display.flip()
 
     pygame.quit()

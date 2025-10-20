@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
 import csv
 import json
 from dataclasses import dataclass
@@ -23,6 +21,7 @@ from ..simulation.schedule_generator import (
     TravelEstimator,
     format_minutes,
 )
+from ..simulation.activities import ActivityCatalog, ActivityProfile
 
 
 @dataclass
@@ -42,13 +41,23 @@ class ScheduledActivity:
     notes: Optional[str] = None
     expected_travel: Optional[int] = None
     travel_buffer: int = 0
+    profile: Optional[ActivityProfile] = None
 
 
 class ScheduleSystem:
-    def __init__(self, mapgrid, path: str, *, day_length_minutes: int = 1440, rng=None):
+    def __init__(
+        self,
+        mapgrid,
+        path: str,
+        *,
+        day_length_minutes: int = 1440,
+        rng=None,
+        activity_catalog: ActivityCatalog | None = None,
+    ):
         self.mapgrid = mapgrid
         self.day_length_minutes = day_length_minutes
         self.rng = rng
+        self.activity_catalog = activity_catalog
         roster_path = Path(path)
         if not roster_path.is_absolute():
             roster_path = (Path.cwd() / roster_path).resolve()
@@ -213,6 +222,7 @@ class ScheduleSystem:
             duration = block.duration_minutes
             location = block.room_id or (spec.location if spec else "")
             notes = block.notes if block.notes is not None else (spec.notes if spec else None)
+            profile = self._resolve_profile(block.activity_id)
             activity = ScheduledActivity(
                 name=block.activity_id,
                 duration=duration,
@@ -221,6 +231,7 @@ class ScheduleSystem:
                 notes=notes,
                 expected_travel=block.expected_travel,
                 travel_buffer=block.travel_buffer,
+                profile=profile,
             )
             schedule.append((format_minutes(block.start_tick), activity))
         schedule.sort(key=lambda item: self._hhmm_to_minutes(item[0]))
@@ -275,7 +286,7 @@ class ScheduleSystem:
             for time_str, activity in npc.schedule:
                 if time_str != hhmm:
                     continue
-                if npc.pending_activity is not None:
+                if npc.pending_schedule is not None:
                     continue
                 if npc.current_activity and npc.current_activity.name == activity.name:
                     continue
@@ -331,3 +342,8 @@ class ScheduleSystem:
                             block.notes or (spec.notes if spec else ""),
                         ]
                     )
+
+    def _resolve_profile(self, activity_id: str) -> ActivityProfile | None:
+        if self.activity_catalog is None:
+            return None
+        return self.activity_catalog.resolve(activity_id)

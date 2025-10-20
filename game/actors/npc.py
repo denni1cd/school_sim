@@ -1,19 +1,20 @@
-
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from .base_actor import Actor, NPCState
 
-
 if TYPE_CHECKING:
+    from ..simulation.activities import Activity
     from ..simulation.schedule_generator import DailySchedule
+    from ..systems.schedule_system import ScheduledActivity
 
 
 @dataclass
 class NPC(Actor):
     role: str = "student"
     schedule: List[Tuple[str, object]] = field(default_factory=list)
-    pending_activity: Optional[object] = None
+    pending_schedule: Optional["ScheduledActivity"] = None
+    pending_activity: Optional["Activity"] = None
     pending_activity_start_minutes: Optional[int] = None
     current_activity: Optional[object] = None
     current_activity_start_minutes: Optional[int] = None
@@ -22,12 +23,20 @@ class NPC(Actor):
     daily_plan: List["DailySchedule"] = field(default_factory=list)
 
     def assign_activity(self, activity, start_minutes: Optional[int] = None) -> None:
-        self.pending_activity = activity
+        self.pending_schedule = activity
+        self.pending_activity = None
         self.pending_activity_start_minutes = start_minutes
         self.pending_destination = None
 
-    def begin_activity(self, activity, current_minutes: Optional[int] = None, *, day_length_minutes: Optional[int] = None) -> None:
+    def begin_activity(
+        self,
+        activity,
+        current_minutes: Optional[int] = None,
+        *,
+        day_length_minutes: Optional[int] = None,
+    ) -> None:
         start_minutes = self.pending_activity_start_minutes
+        self.pending_schedule = None
         self.pending_activity = None
         self.pending_activity_start_minutes = None
         self.pending_destination = None
@@ -50,10 +59,12 @@ class NPC(Actor):
         self.current_activity_start_minutes = None
         self.activity_remaining = 0
         self.pending_destination = None
+        self.pending_activity = None
         self.state = NPCState.IDLE
 
-    def tick_activity_minute(self) -> None:
+    def tick_activity_minute(self) -> bool:
         if self.current_activity and self.activity_remaining > 0:
             self.activity_remaining -= 1
             if self.activity_remaining <= 0:
-                self.clear_activity()
+                return True
+        return False

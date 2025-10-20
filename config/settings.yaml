@@ -14,5 +14,7 @@ map:
 data:
   map_file: data/campus_map_v1.json
   npc_schedule_file: config/schedules/npc_assignments.yaml
+activities:
+  catalog_file: config/activities.yaml
 interactions:
   messages_file: config/interactions.yaml

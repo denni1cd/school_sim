@@ -3,7 +3,8 @@
 This document captures the structure used by the Milestone B scheduling system.
 
 ## Files
-- `config/schedules/activities.yaml` — canonical activity definitions including default duration, location, and optional notes.
+- `config/schedules/activities.yaml` — slot defaults for durations, locations, and notes (legacy compatibility).
+- `config/activities.yaml` — canonical activity catalog consumed by the factory to surface labels, interaction keys, and metadata.
 - `config/schedules/student_templates.yaml` — persona-driven schedule templates with `slot`, `start`, `duration`, `activity`, optional `room`, `travel_buffer`, and free-form `notes` per entry.
 - `config/schedules/npc_assignments.yaml` — roster describing which template each NPC uses along with slot-level overrides.
 
@@ -16,7 +17,8 @@ This document captures the structure used by the Milestone B scheduling system.
 | `activity` | Activity key mapping to `activities.yaml`. |
 | `room` | Optional override for the activity’s default location. |
 | `travel_buffer` | Optional HH:MM buffer allocated for travel before the slot. |
-| `notes` | Optional human-readable description.
+| `notes` | Optional human-readable description. |
+| `profile` | Runtime-only `ActivityProfile` resolved via `config/activities.yaml` (available inside the engine). |
 
 ## Assignment Overrides
 Each override entry can modify an instantiated slot:

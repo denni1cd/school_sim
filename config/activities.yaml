@@ -1,0 +1,162 @@
+catalog:
+  Sleeping:
+    display_name: Sleeping
+    interaction_key: activity.sleeping
+    room_types: [Dormitory, Infirmary]
+    default_duration: "08:00"
+    state:
+      posture: lying
+      lights: off
+      intensity: quiet
+  Eating:
+    display_name: Eating
+    interaction_key: activity.eating
+    room_types: [Cafeteria, DiningHall]
+    default_duration: "01:00"
+    state:
+      noise_level: moderate
+      seating: communal
+  Studying:
+    display_name: Studying
+    interaction_key: activity.studying
+    room_types: [Classroom, Library, StudyHall]
+    default_duration: "02:00"
+    state:
+      focus: high
+      materials: books
+  Teaching:
+    display_name: Teaching
+    interaction_key: activity.teaching
+    room_types: [Classroom, Auditorium, Lab]
+    default_duration: "02:00"
+    state:
+      focus: instruction
+      audience: students
+  Recreation:
+    display_name: Recreation
+    interaction_key: activity.recreation
+    room_types: [Gymnasium, Courtyard, Commons]
+    default_duration: "01:30"
+    state:
+      noise_level: lively
+      equipment: varies
+  Maintenance:
+    display_name: Maintenance
+    interaction_key: activity.maintenance
+    room_types: [Maintenance, Administration, Grounds]
+    default_duration: "01:00"
+    state:
+      task: upkeep
+      tools: basic
+  Medical:
+    display_name: Medical
+    interaction_key: activity.medical
+    room_types: [Infirmary, Counseling]
+    default_duration: "00:45"
+    state:
+      focus: care
+      privacy: elevated
+  Discipline:
+    display_name: Discipline
+    interaction_key: activity.discipline
+    room_types: [Administration, Counseling]
+    default_duration: "00:30"
+    state:
+      focus: reflection
+      tone: serious
+  Idle:
+    display_name: Idle
+    interaction_key: activity.idle
+    room_types: [Any]
+    default_duration: "00:15"
+    state:
+      focus: light
+      posture: standing
+aliases:
+  wake:
+    activity: Idle
+    display_name: Morning Prep
+    state:
+      posture: stretching
+  breakfast:
+    activity: Eating
+    state:
+      meal: breakfast
+  lunch:
+    activity: Eating
+    state:
+      meal: lunch
+  dinner:
+    activity: Eating
+    state:
+      meal: dinner
+  class:
+    activity: Studying
+    display_name: Class Session
+    state:
+      focus: lecture
+  study:
+    activity: Studying
+    display_name: Study Hall
+    state:
+      focus: self_directed
+  club:
+    activity: Recreation
+    display_name: Club Activity
+    state:
+      equipment: club_specific
+  errand:
+    activity: Maintenance
+    display_name: Campus Errand
+    state:
+      task: paperwork
+  free:
+    activity: Idle
+    display_name: Free Time
+    state:
+      posture: relaxed
+  evening_walk:
+    activity: Recreation
+    display_name: Evening Walk
+    state:
+      intensity: gentle
+  practice:
+    activity: Recreation
+    display_name: Practice Session
+    state:
+      focus: athletics
+  prefect_rounds:
+    activity: Discipline
+    display_name: Prefect Rounds
+    state:
+      focus: supervision
+  lights_out_north:
+    activity: Sleeping
+    display_name: Lights Out (North Wing)
+    state:
+      wing: north
+  lights_out_south:
+    activity: Sleeping
+    display_name: Lights Out (South Wing)
+    state:
+      wing: south
+  librarian_shift:
+    activity: Teaching
+    display_name: Library Shift
+    state:
+      focus: supervision
+  library_break:
+    activity: Recreation
+    display_name: Library Break
+    state:
+      intensity: quiet
+  librarian_close:
+    activity: Maintenance
+    display_name: Library Closing Duties
+    state:
+      task: closing
+  lab_research:
+    activity: Studying
+    display_name: Lab Research
+    state:
+      focus: prototype

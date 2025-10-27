@@ -1,0 +1,11 @@
+homeroom_A:
+  "08:00": "ClassroomA"
+  "09:00": "ClassroomA"
+  "10:00": "ClassroomA"
+  "11:00": "Cafeteria"
+
+homeroom_B:
+  "08:00": "ClassroomA"
+  "09:00": "ClassroomA"
+  "10:00": "Lounge"
+  "11:00": "Cafeteria"

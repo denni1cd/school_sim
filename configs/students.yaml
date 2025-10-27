@@ -1,0 +1,12 @@
+students:
+  - name: "Alice"
+    homeroom: "homeroom_A"
+    current_room: "DormA"
+
+  - name: "Becca"
+    homeroom: "homeroom_A"
+    current_room: "DormA"
+
+  - name: "Chloe"
+    homeroom: "homeroom_B"
+    current_room: "DormA"

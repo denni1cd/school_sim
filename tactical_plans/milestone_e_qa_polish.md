@@ -49,10 +49,10 @@ Stabilize the engine after major feature additions by expanding automated covera
    - Sign off in `docs/qa_signoff.md` with checklist status.
 
 ## Deliverables
-- Expanded automated test suite with coverage report.
-- Performance profiling report and implemented optimizations.
-- Updated documentation (release notes, README, onboarding checklist).
-- QA sign-off checklist capturing final validation.
+- Expanded automated test suite with coverage report. *(Implemented via new regression tests in `tests/`.)*
+- Performance profiling report and implemented optimizations. *(`docs/performance_report.md`, movement system path caching.)*
+- Updated documentation (release notes, README, onboarding checklist). *(`docs/milestone_release_notes.md`, `docs/onboarding_checklist.md`, README updates.)*
+- QA sign-off checklist capturing final validation. *(`docs/qa_signoff.md`, `docs/qa_backlog.md`.)*
 
 ## Acceptance Criteria
 - Full `pytest` suite passes consistently on local and CI runs.

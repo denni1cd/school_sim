@@ -1,6 +1,36 @@
 from game.interface import CommandDispatcher, CommandError, PrincipalControls
 
 
+def test_override_during_curfew_triggers_alert(simulation) -> None:
+    controls = PrincipalControls(simulation)
+    simulation.alert_bus.clear()
+    simulation.clock.minute = 23 * 60
+
+    blocks = controls.override_schedule(
+        'Alice',
+        [
+            {
+                'start': '23:00',
+                'activity': 'study',
+                'room': 'Library',
+                'duration': '01:00',
+            }
+        ],
+        reason='test_curfew_override',
+    )
+
+    assert blocks and blocks[0].room_id == 'Library'
+
+    npc = simulation.get_npc('Alice')
+    assert npc is not None
+    npc.current_activity = None
+    npc.x, npc.y = simulation.grid.room_center('Library')
+
+    simulation._check_curfew(npc, 23 * 60 + 30)
+    alerts = simulation.alert_bus.active_alerts()
+    assert any(alert.category == 'CurfewViolation' for alert in alerts)
+
+
 def test_override_schedule_updates_daily_plan(simulation) -> None:
     controls = PrincipalControls(simulation)
     blocks = controls.override_schedule(

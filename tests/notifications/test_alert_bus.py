@@ -42,3 +42,41 @@ def test_cooldown_returns_existing_alert() -> None:
         npc_ids=['Bea'],
     )
     assert first.id == second.id
+
+
+def test_acknowledged_alert_respects_cooldown_and_persists_history() -> None:
+    bus = AlertBus(cooldown_minutes=10)
+    first = bus.publish(
+        'Overcapacity',
+        minute_stamp=100,
+        severity='high',
+        message='Dorm crowding',
+        room_id='Dorm_South',
+        npc_ids=['Alice', 'Bea'],
+    )
+    bus.acknowledge(first.id, minute_stamp=103)
+
+    repeat = bus.publish(
+        'Overcapacity',
+        minute_stamp=105,
+        severity='high',
+        message='Dorm crowding again',
+        room_id='Dorm_South',
+        npc_ids=['Alice', 'Bea'],
+    )
+    assert repeat.id == first.id
+
+    later = bus.publish(
+        'Overcapacity',
+        minute_stamp=120,
+        severity='medium',
+        message='Dorm relieved',
+        room_id='Dorm_South',
+        npc_ids=['Alice', 'Bea'],
+    )
+    assert later.id != first.id
+
+    history = list(bus.iter_history())
+    assert len(history) == 2
+    assert history[0].id == first.id
+    assert history[1].id == later.id

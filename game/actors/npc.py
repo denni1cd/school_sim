@@ -15,6 +15,12 @@ if TYPE_CHECKING:
     from ..simulation.activities import Activity
 
 
+if TYPE_CHECKING:
+    from ..simulation.schedule_generator import DailySchedule
+    from ..systems.schedule_system import ScheduledActivity
+    from ..simulation.activities import Activity
+
+
 @dataclass
 class NPC(Actor):
     role: str = "student"

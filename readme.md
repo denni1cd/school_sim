@@ -21,6 +21,12 @@ make test
   ```
   The command dispatcher understands schedule overrides, summons, alert acknowledgements, and broadcasts. See `docs/principal_controls.md` for the full syntax.
 
+### QA & Performance (Milestone E)
+- Fresh regression tests cover curfew overrides, alert cooldowns, cached path planning, and activity interruptions.
+- Long-run soak and profiling notes live in `docs/performance_report.md`; consult it before adjusting movement or alert logic.
+- Track outstanding issues in `docs/qa_backlog.md` and final verification in `docs/qa_signoff.md`.
+- Release context for Milestones D-E is summarised in `docs/milestone_release_notes.md`.
+
 ### Map Selection
 - Default sandbox loads `data/campus_map_v1.json`, a full boarding school layout with dorm wings, classrooms, cafeteria, and support spaces.
 - Override the map in either headless or interactive modes via `--map`:
@@ -34,4 +40,3 @@ make test
 - Interaction text can incorporate activity labels and metadata, while the Pygame client displays a Tab-activated overlay summarizing the current room's occupants and tasks.
 - Principal management hooks provide CLI and overlay tooling for schedule overrides, summons, alerts, and broadcasts; alerts are published for over-capacity rooms, missed classes, and curfew violations.
 - `tests/activities/` verifies factory wiring and room reporting; scheduling, simulation, and interaction suites exercise the integrated flow end-to-end.
-

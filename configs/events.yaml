@@ -1,0 +1,6 @@
+- id: 'welcome_assembly'
+  when: '08:15'
+  scene:
+    image: 'welcome.png'
+    caption: 'Welcome assembly in the gym.'
+  once: true

@@ -1,3 +1,5 @@
+"""Validate policy history captures changes over time."""
+
 from school_sim.bootstrap import load_policies_config, load_rooms, load_students, load_timetable
 from school_sim.world import World
 

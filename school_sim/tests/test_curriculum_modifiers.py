@@ -1,3 +1,5 @@
+"""Verify that curriculum modifiers apply classroom effects correctly."""
+
 from types import SimpleNamespace
 
 from school_sim import curriculum

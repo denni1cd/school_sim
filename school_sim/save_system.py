@@ -126,12 +126,14 @@ class SaveSystem:
             world.refresh_club_memberships()
 
     def _read_snapshot(self, path: Path) -> dict:
+        """Read and parse the snapshot JSON from disk."""
         if not path.exists():
             raise FileNotFoundError(f"Save file not found: {path}")
         with path.open("r", encoding="utf-8") as handle:
             return json.load(handle)
 
     def _validate_snapshot(self, snapshot: dict) -> None:
+        """Ensure required keys exist in snapshot data before applying."""
         if "time_minutes" not in snapshot or "students" not in snapshot:
             raise ValueError("Snapshot missing required keys.")
         if not isinstance(snapshot["students"], list):

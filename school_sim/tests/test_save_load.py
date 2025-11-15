@@ -1,3 +1,5 @@
+"""Confirm saves persist and restore world state accurately."""
+
 from pathlib import Path
 
 import json

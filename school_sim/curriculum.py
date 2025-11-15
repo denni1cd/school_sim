@@ -83,12 +83,14 @@ def apply_classroom_modifiers(
 
 
 def _canonical(name: Optional[str]) -> str:
+    """Normalise track names to lowercase keys."""
     if not name:
         return "general"
     return str(name).strip().lower()
 
 
 def _label(key: str) -> str:
+    """Return the capitalised label used for UI when referencing a track."""
     return {
         "general": "General",
         "stem": "STEM",
@@ -97,4 +99,5 @@ def _label(key: str) -> str:
 
 
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+    """Clamp a numeric value between configured bounds."""
     return max(minimum, min(maximum, value))

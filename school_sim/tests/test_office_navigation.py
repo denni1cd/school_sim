@@ -1,3 +1,5 @@
+"""Verify office tab navigation cycles correctly."""
+
 import copy
 import pytest
 

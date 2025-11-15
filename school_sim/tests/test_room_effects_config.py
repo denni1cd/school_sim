@@ -1,3 +1,5 @@
+"""Ensure room effect configuration layers defaults and overrides."""
+
 import pytest
 
 from school_sim.bootstrap import load_rooms, load_students, load_timetable

@@ -1,3 +1,5 @@
+"""Helpers to load and validate serialized event definitions."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,6 +11,7 @@ from .event_models import Event, EventValidationError, Scene
 
 
 def _ensure_iterable(payload) -> Iterable[dict]:
+    """Return a list of event entries or raise when the payload is malformed."""
     if payload is None:
         return []
     if not isinstance(payload, list):
@@ -17,9 +20,7 @@ def _ensure_iterable(payload) -> Iterable[dict]:
 
 
 def load_events(path: str) -> List[Event]:
-    """
-    Load events from the given YAML path and return validated Event objects.
-    """
+    """Load events from the given YAML path and return validated Event objects."""
     with Path(path).open("r", encoding="utf-8") as handle:
         payload = yaml.safe_load(handle)
 

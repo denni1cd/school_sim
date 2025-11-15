@@ -1,3 +1,5 @@
+"""Ensure event visibility and overlay triggers behave as expected."""
+
 from pathlib import Path
 
 import pygame

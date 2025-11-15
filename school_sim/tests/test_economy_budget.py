@@ -1,3 +1,5 @@
+"""Check budget adjustments and transaction history management."""
+
 import pytest
 
 from school_sim import economy

@@ -71,6 +71,7 @@ class OfficeScreen:
 
     @property
     def active_index(self) -> int:
+        """Return the index of the currently active tab."""
         return self._active_index
 
     def tab_titles(self) -> List[str]:
@@ -181,6 +182,7 @@ class OfficeScreen:
     # -- config normalisation helpers -------------------------------------------------
 
     def _normalise_policies(self, payload: Optional[dict]) -> dict:
+        """Return a policy config payload merged with office defaults."""
         config = {
             "uniforms": "moderate",
             "discipline": "fair",
@@ -195,6 +197,7 @@ class OfficeScreen:
         return config
 
     def _normalise_clubs(self, payload: Optional[dict]) -> dict:
+        """Return clubs payload merged with office defaults."""
         config = {
             "clubs": [],
             "costs": {"create_club": 100, "assign_student": 5},
@@ -222,6 +225,7 @@ class OfficeScreen:
         return config
 
     def _normalise_curriculum(self, payload: Optional[dict]) -> dict:
+        """Return a normalized curriculum payload for display."""
         config = {"active_track": "General"}
         if not payload:
             return config
@@ -229,6 +233,7 @@ class OfficeScreen:
         return config
 
     def _normalise_staff(self, payload: Optional[dict]) -> dict:
+        """Sanitize the staff payload for the office staff tab."""
         config = {"staff": []}
         if not payload:
             return config
@@ -239,6 +244,7 @@ class OfficeScreen:
     # -- view builders -----------------------------------------------------------------
 
     def _build_policies_lines(self, snapshot: dict) -> List[str]:
+        """Return text lines representing policy controls for the UI."""
         state = self._current_policy_state()
         uniforms = state.get("uniforms", "moderate").title()
         discipline = state.get("discipline", "fair").title()
@@ -253,6 +259,7 @@ class OfficeScreen:
         return lines
 
     def _build_clubs_lines(self, snapshot: dict) -> List[str]:
+        """Return overview lines for configured clubs and engagement."""
         config_clubs = self.clubs_config.get("clubs", [])
         snapshot_data = {
             club.get("id"): club
@@ -297,6 +304,7 @@ class OfficeScreen:
         return lines
 
     def _build_curriculum_lines(self, snapshot: dict) -> List[str]:
+        """Return lines describing the curriculum options and pending change."""
         active = self._current_curriculum_track()
         lines: List[str] = []
         for idx, option in enumerate(self._curriculum_options):
@@ -313,6 +321,7 @@ class OfficeScreen:
         return lines
 
     def _build_staff_lines(self, snapshot: dict) -> List[str]:
+        """Return lines showing the current staff roster."""
         staff = self.staff_config.get("staff", [])
         if not staff:
             return ["No staff roster defined."]
@@ -325,6 +334,7 @@ class OfficeScreen:
         return lines
 
     def _build_reports_lines(self, snapshot: dict) -> List[str]:
+        """Return lines summarizing budget, rating, and event history."""
         time_str = snapshot.get("time", "--:--")
         budget = snapshot.get("budget")
         rating = snapshot.get("rating")
@@ -385,11 +395,13 @@ class OfficeScreen:
     # -- internal helpers ---------------------------------------------------------------
 
     def _current_curriculum_track(self) -> str:
+        """Return the curriculum track currently tracked by the world or config."""
         if self._world is not None:
             return self._world.curriculum_state.get("active_track", "General")
         return self.curriculum_config.get("active_track", "General")
 
     def _sync_curriculum_cursor(self) -> None:
+        """Align the cursor with the currently active curriculum option."""
         active = self._current_curriculum_track().strip().title()
         if active in self._curriculum_options:
             self._curriculum_cursor = self._curriculum_options.index(active)
@@ -397,6 +409,7 @@ class OfficeScreen:
             self._curriculum_cursor = 0
 
     def _current_policy_state(self) -> dict:
+        """Return the policy state to display inside the office."""
         if self._world is not None:
             return {
                 "uniforms": self._world.policy_state.get("uniforms", "moderate"),
@@ -408,6 +421,7 @@ class OfficeScreen:
         }
 
     def _policy_line(self, key: str, value: str, cost: Optional[int]) -> str:
+        """Format a line describing a policy option and its pending change."""
         cursor = ">" if (self._policy_cursor == 0 and key == "uniforms") or (
             self._policy_cursor == 1 and key == "discipline"
         ) else " "
@@ -421,6 +435,7 @@ class OfficeScreen:
         return f"{cursor} {key.title()}: {value} {suffix}".strip()
 
     def _next_policy_value(self, key: str, current: str) -> str:
+        """Return the next policy level for the given key."""
         sequence = self._policy_sequences.get(key, [])
         if not sequence:
             return current
@@ -430,6 +445,7 @@ class OfficeScreen:
         return sequence[index]
 
     def _apply_policy_change(self, key: str) -> Optional[OfficeActionResult]:
+        """Apply the queued policy change via world APIs and return feedback."""
         if self._world is None:
             return None
         target = self._pending_policy_values.get(key)

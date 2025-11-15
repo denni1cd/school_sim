@@ -1,3 +1,5 @@
+"""Ensure the principal console routes commands and records outputs."""
+
 import pygame
 
 from school_sim.events.event_bus import EventBus

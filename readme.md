@@ -91,3 +91,15 @@ python -m pip install -r requirements.txt
 - Use `technomancy/tools/generate_acceptance_coverage.py` to keep tasks aligned with spec Acceptance IDs; cite `AC-xxx` references in plans and reports.
 
 Refer to `technomancy/docs/specification.md` (v1.4) for milestone acceptance criteria, config schemas, and the overall modernization roadmap.
+
+## Implementation Review (Pending Structures)
+
+1. **Policy flow and automation (`school_sim/policies.py`, `school_sim/world.py`, `school_sim/office.py`)** – Uniforms and discipline toggles are wired through the office UI, budget adjustments, and rating hooks, yet there is no scheduled automation, policy cooldown handling, or teacher-targeted interventions. Future work could layer in policy milestones, tiered costs, and more granular compliance tracking per homeroom beyond the current uniform/discipline pair.
+
+2. **Clubs system (`school_sim/clubs.py`, `school_sim/configs/clubs.yaml`)** – Club meetings, assignments, and overflow penalties exist, but club creation/assignment still requires direct YAML edits; there is no runtime editor, limiting operations to config tweaks or tests. Planned enhancements include a club builder UI, dynamic costs per student, and richer effect profiles per need (currently static modifiers).
+
+3. **Curriculum tracks and classroom impacts (`school_sim/curriculum.py`)** – The three hardcoded tracks only adjust need deltas for stress/energy/hygiene; there are no elective scheduling, teacher availability, or progress rewards yet. Expanding this structure will involve tracking classroom assignments, unlocking track-specific modules, and tying curriculum changes into policy/event budgets.
+
+4. **Staff management (`school_sim/office.py`, `school_sim/configs/staff.yaml`)** – Staff entries render in the Office but remain read-only data. The console lacks hiring/firing, shift scheduling, or staff-driven effects on student needs or compliance. Consider adding staff actions, budget impacts, or integration with events/ratings before claiming the staff subsystem is implemented.
+
+5. **Event-driven overlays (`school_sim/events/*`)** – Scene payloads, bus wiring, and rules fire overlays, yet metadata beyond image/caption is minimal, and there is no visual editor or event authoring GUI. Expanding this structure, including event tagging, conditional payload variations, or richer metadata, would make the feature set complete.

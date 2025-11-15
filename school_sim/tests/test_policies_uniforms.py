@@ -1,3 +1,5 @@
+"""Check uniform policy transitions and validation."""
+
 import pytest
 
 from school_sim.bootstrap import load_policies_config, load_rooms, load_students, load_timetable

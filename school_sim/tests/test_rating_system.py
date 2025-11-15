@@ -1,3 +1,5 @@
+"""Validate the rating system's delta and smoothing logic."""
+
 import pytest
 
 from school_sim.bootstrap import load_rooms, load_students, load_timetable

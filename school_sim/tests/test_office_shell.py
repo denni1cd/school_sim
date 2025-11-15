@@ -1,3 +1,5 @@
+"""Exercise the office shell interface for handling actions."""
+
 import pytest
 
 from school_sim.office import OfficeScreen

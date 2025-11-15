@@ -1,3 +1,5 @@
+"""Ensure office reports summarize relevant data."""
+
 from school_sim.office import OfficeScreen
 
 

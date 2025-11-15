@@ -60,4 +60,5 @@ class Room:
 
 
 def _clamp(value: float, *, minimum: float = 0.0, maximum: float = 100.0) -> float:
+    """Clamp a numeric value within the given bounds."""
     return max(minimum, min(maximum, value))

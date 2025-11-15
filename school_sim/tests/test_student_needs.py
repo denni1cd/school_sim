@@ -1,3 +1,5 @@
+"""Assert student need decay and recovery rules match expectations."""
+
 from school_sim.room import Room
 from school_sim.student import (
     CRITICAL_ENERGY,

@@ -1,3 +1,5 @@
+"""Run the headless simulation runner to keep deterministic logs."""
+
 from pathlib import Path
 
 from school_sim.bootstrap import load_rooms, load_students, load_timetable

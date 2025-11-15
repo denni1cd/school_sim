@@ -1,3 +1,5 @@
+"""Primary world simulation orchestrating rooms, students, events, clubs, and budgeting."""
+
 from __future__ import annotations
 
 import math
@@ -22,6 +24,7 @@ from .timetable import Timetable, minutes_to_timestr
 
 
 class World:
+    """Manage rooms, students, policies, clubs, events, and rating flows."""
     def __init__(
         self,
         rooms: Dict[str, Room],
@@ -34,6 +37,7 @@ class World:
         clubs_config: Optional[dict] = None,
         curriculum_config: Optional[dict] = None,
     ):
+        """Set up world state including rooms, students, policies, and clubs."""
         self.rooms = rooms
         self.students = students
         self.timetable = timetable
@@ -167,6 +171,7 @@ class World:
         self._spread_students_in_rooms()
 
     def _emit_room_transition(self, student: Student, previous_room: Optional[str], current_room: Optional[str]) -> None:
+        """Emit bus notifications when a student changes rooms."""
         if not self.event_bus:
             return
         if previous_room:
@@ -226,11 +231,13 @@ class World:
         return data
 
     def consume_recent_events(self) -> List[dict]:
+        """Return pending events accumulated since the last snapshot."""
         events = list(self._pending_events)
         self._pending_events.clear()
         return events
 
     def record_event(self, *, event_id: Optional[str], caption: Optional[str], time_str: Optional[str]) -> None:
+        """Append an event record to history and mark it for immediate consumption."""
         payload = {
             "id": event_id,
             "caption": caption,
@@ -240,6 +247,7 @@ class World:
         self._pending_events.append(payload)
 
     def _on_event_fired(self, payload: dict) -> None:
+        """Handle event bus callbacks and record fired event details."""
         event = payload.get("event")
         caption = None
         if event and getattr(event, "scene", None):
@@ -252,9 +260,11 @@ class World:
 
     @property
     def event_history(self) -> List[dict]:
+        """Return an immutable copy of the recorded event history."""
         return list(self._event_history)
 
     def _apply_room_effect_config(self) -> None:
+        """Apply configured room effects to each Room instance."""
         if not self.room_effects_config:
             return
         for room in self.rooms.values():
@@ -267,6 +277,7 @@ class World:
             room.knowledge_gain = knowledge_gain
 
     def _update_rating(self) -> None:
+        """Recompute the institutional rating and flash indicator."""
         flash_threshold = float(self.rating_config.get("flash_threshold", 2.0))
 
         if self._tick_compliance:
@@ -308,6 +319,7 @@ class World:
     # -- policy management -----------------------------------------------------
 
     def change_uniform_policy(self, new_level: str) -> str:
+        """Apply a uniform policy change, adjust budget, and emit overlays."""
         costs = self.policy_config.get("costs", {})
         budget_after, caption = change_uniform(self.policy_state, new_level, costs=costs, budget=self.budget)
         if budget_after != self.budget:
@@ -319,6 +331,7 @@ class World:
         return caption
 
     def change_discipline_policy(self, new_level: str) -> str:
+        """Apply a discipline policy change, log the transaction, and notify observers."""
         costs = self.policy_config.get("costs", {})
         budget_after, caption = change_discipline(
             self.policy_state,
@@ -335,6 +348,7 @@ class World:
         return caption
 
     def _announce_policy_change(self, policy_key: str, caption: str) -> None:
+        """Emit overlays and record a log entry for policy updates."""
         if self.event_bus:
             self.event_bus.emit(
                 "policy_overlay",
@@ -348,6 +362,7 @@ class World:
         self.record_event(event_id=f"policy_{policy_key}", caption=caption, time_str=minutes_to_timestr(self.time_minutes))
 
     def change_curriculum_track(self, new_track: str) -> str:
+        """Update the active curriculum track and emit overlays if it changed."""
         previous = curriculum_current_track(self.curriculum_state)
         caption = set_curriculum_track(new_track, state=self.curriculum_state)
         current = curriculum_current_track(self.curriculum_state)
@@ -356,6 +371,7 @@ class World:
         return caption
 
     def _announce_curriculum_change(self, caption: str) -> None:
+        """Display overlays and record the curriculum change event."""
         time_str = minutes_to_timestr(self.time_minutes)
         if self.event_bus:
             self.event_bus.emit(
@@ -371,24 +387,29 @@ class World:
     # -- clubs management ------------------------------------------------------
 
     def get_student(self, name: str):
+        """Return the student matching the provided name if present."""
         for student in self.students:
             if student.name == name:
                 return student
         return None
 
     def assign_student_to_club(self, student_name: str, club_id: str) -> bool:
+        """Attempt to assign a student to a club via the club manager."""
         student = self.get_student(student_name)
         if not student:
             return False
         return self.clubs_manager.assign_student(student, club_id)
 
     def register_club_engagement(self, ratio: float) -> None:
+        """Add an engagement sample for later rating calculations."""
         self._club_engagement_samples.append(max(0.0, min(1.0, ratio)))
 
     def apply_club_penalty(self, magnitude: float) -> None:
+        """Accumulate club overflow penalties for future adjustments."""
         self._club_penalty_accumulator += max(0.0, magnitude)
 
     def refresh_club_memberships(self) -> None:
+        """Rebuild each club's member roster from the latest student assignments."""
         for club in self.clubs_manager.clubs:
             club.members.clear()
         for student in self.students:
@@ -398,6 +419,7 @@ class World:
                     club.members.append(student.name)
 
     def _initialise_curriculum_state(self, game_payload: Optional[dict], config_payload: Optional[dict]) -> None:
+        """Set the initial curriculum state based on configuration precedence."""
         sources = []
         if isinstance(config_payload, dict) and config_payload:
             sources.append(config_payload)
@@ -458,6 +480,7 @@ class World:
         return positions
 
     def _attendance_ratio(self) -> float:
+        """Compute the fraction of recorded attendance marked as on-time."""
         total, on_time = 0, 0
         for student in self.students:
             for attended in student.attendance_record.values():
@@ -469,6 +492,7 @@ class World:
         return on_time / total
 
     def _count_critical_students(self) -> int:
+        """Counting students whose needs exceed configured critical thresholds."""
         overrides = self.needs_overrides or {}
         default_thresholds = {
             "hunger": CRITICAL_HUNGER,
@@ -492,6 +516,7 @@ class World:
         return critical
 
     def _record_transaction(self, delta: int, reason: str, *, time_str: Optional[str] = None) -> None:
+        """Push a delta into the economy history if the amount is non-zero."""
         if delta == 0:
             return
         record_transaction(
@@ -503,6 +528,7 @@ class World:
         )
 
     def _log_policy_change(self, policy_key: str, value: str, delta: int, caption: str) -> None:
+        """Record a policy change entry for the office reports tab."""
         timestamp = minutes_to_timestr(self.time_minutes)
         entry = {
             "time": timestamp,
@@ -517,6 +543,7 @@ class World:
             self.policy_history.pop(0)
 
     def _adjust_budget(self, delta: int, reason: str = "Budget adjustment") -> bool:
+        """Adjust the budget safely, returning False when the operation would overdraw."""
         if delta == 0:
             return True
         try:

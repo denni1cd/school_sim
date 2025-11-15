@@ -1,3 +1,5 @@
+"""Ensure club assignments respect budget constraints."""
+
 import copy
 
 from school_sim.bootstrap import (

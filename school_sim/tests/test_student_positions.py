@@ -1,3 +1,5 @@
+"""Ensure student positions update consistently with targets."""
+
 from school_sim.room import Room
 from school_sim.student import Student
 from school_sim.timetable import Timetable

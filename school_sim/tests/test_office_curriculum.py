@@ -1,3 +1,5 @@
+"""Cover curriculum tab interactions exposed in the office."""
+
 from school_sim.bootstrap import (
     load_clubs_config,
     load_curriculum_config,

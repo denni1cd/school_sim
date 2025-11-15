@@ -84,6 +84,7 @@ def compute_rating(
 
 
 def _normalise_weights(weights: Dict[str, float]) -> Dict[str, float]:
+    """Return weights with defaults applied, ensuring the sum is positive."""
     merged = DEFAULT_WEIGHTS.copy()
     for key, value in weights.items():
         if key in merged:
@@ -95,4 +96,5 @@ def _normalise_weights(weights: Dict[str, float]) -> Dict[str, float]:
 
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
+    """Clamp the input between the provided bounds."""
     return max(minimum, min(maximum, value))

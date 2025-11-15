@@ -1,5 +1,6 @@
-import math
 """Student behaviour, needs, scheduling, and movement utilities."""
+
+import math
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
@@ -12,11 +13,13 @@ DEFAULT_SPEED = 120.0  # pixels per minute
 
 
 def _minutes_from_timestr(timestr: str) -> int:
+    """Convert an HH:MM timestamp into minutes since midnight."""
     hours, mins = map(int, timestr.split(":"))
     return hours * 60 + mins
 
 
 def _is_in_window(minute: int, window: tuple[int, int]) -> bool:
+    """Return True when the minute falls inside the circular window."""
     start, end = window
     if start <= end:
         return start <= minute < end
@@ -24,6 +27,7 @@ def _is_in_window(minute: int, window: tuple[int, int]) -> bool:
 
 
 def _in_windows(minute: int, windows: list[tuple[int, int]]) -> bool:
+    """Check whether the minute falls inside any provided window."""
     return any(_is_in_window(minute, window) for window in windows)
 
 
@@ -103,6 +107,7 @@ class Student:
         overrides = overrides or {}
 
         def override_value(need: str, key: str, fallback: float | str) -> float | str:
+            """Return override data for a need or fallback default."""
             return overrides.get(need, {}).get(key, fallback)
 
         hunger_target = override_value("hunger", "room", "cafeteria")
@@ -217,6 +222,7 @@ class Student:
         return self.target_room is not None and self.current_room != self.target_room
 
     def _room_center(self, room: Any) -> tuple[float, float]:
+        """Return the centre coordinates of the provided room space."""
         return room.x + room.width / 2.0, room.y + room.height / 2.0
 
     def move_towards_target(self, rooms: Dict[str, Any], minutes: float):

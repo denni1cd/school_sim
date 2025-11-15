@@ -45,10 +45,12 @@ class PrincipalConsole:
         self.log.appendleft(message)
 
     def _advance_time(self, world, minutes: int) -> None:
+        """Fast-forward the world clock by the provided minute count."""
         world.tick(dt_minutes=minutes)
         self.record(f"Advanced time by {minutes} minutes.")
 
     def _trigger_first_event(self, world) -> None:
+        """Fire the first configured event for debugging purposes."""
         event = self._first_event()
         if not event:
             self.record("No events available to trigger.")
@@ -65,12 +67,15 @@ class PrincipalConsole:
         self.record(f"Triggered event '{event.id}'.")
 
     def _broadcast(self) -> None:
+        """Log a placeholder campus broadcast action."""
         self.record("Campus broadcast placeholder triggered.")
 
     def _first_event(self) -> Optional[Event]:
+        """Return the earliest event defined in the catalog, if any."""
         return self.events_catalog[0] if self.events_catalog else None
 
     def _save_snapshot(self, world) -> None:
+        """Persist the current world state via the save system."""
         save_system = getattr(world, "save_system", None)
         if not save_system:
             self.record("Save system unavailable.")
@@ -79,6 +84,7 @@ class PrincipalConsole:
         self.record(f"Saved game to {Path(result.path).name}.")
 
     def _load_latest(self, world) -> None:
+        """Load the most recent save file if available."""
         save_system = getattr(world, "save_system", None)
         if not save_system:
             self.record("Save system unavailable.")

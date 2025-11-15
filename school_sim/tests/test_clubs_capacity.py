@@ -1,3 +1,5 @@
+"""Validate club overflow handling when membership exceeds capacity."""
+
 import copy
 
 from school_sim.bootstrap import (

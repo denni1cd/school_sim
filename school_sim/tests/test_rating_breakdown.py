@@ -1,3 +1,5 @@
+"""Test rating breakdown calculations and formatting."""
+
 import pytest
 
 from school_sim.rating import DEFAULT_WEIGHTS, compute_rating

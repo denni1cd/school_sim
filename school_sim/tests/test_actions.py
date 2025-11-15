@@ -1,3 +1,5 @@
+"""Tests covering student action scheduling and transitions."""
+
 import pygame
 
 from school_sim.bootstrap import load_game_config, load_rooms, load_students, load_timetable

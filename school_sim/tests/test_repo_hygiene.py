@@ -1,3 +1,5 @@
+"""Check repository hygiene indicators used by the suite."""
+
 from pathlib import Path
 
 

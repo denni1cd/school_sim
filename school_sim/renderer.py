@@ -100,6 +100,7 @@ class Renderer:
         return True
 
     def _draw_rooms(self) -> None:
+        """Draw the room rectangles and labels."""
         for room in self.rooms.values():
             rect = pygame.Rect(room.x, room.y, room.width, room.height)
             color = {
@@ -115,6 +116,7 @@ class Renderer:
             self.screen.blit(label, (room.x + 4, room.y + 4))
 
     def _draw_students(self) -> None:
+        """Draw student positions and name labels."""
         for student in self.students:
             x = int(student.x)
             y = int(student.y)
@@ -123,6 +125,7 @@ class Renderer:
             self.screen.blit(name_text, (x + STUDENT_RADIUS + 2, y - 8))
 
     def _draw_sidebar(self, snapshot: dict) -> None:
+        """Draw the sidebar HUD showing metrics and student statuses."""
         panel_x = max(r.x + r.width for r in self.rooms.values()) + 20
         y = 20
         rating = float(snapshot.get("rating", 0.0))
@@ -198,6 +201,7 @@ class Renderer:
             y += FONT_SIZE
 
     def _draw_console_panel(self, snapshot: dict) -> None:
+        """Render the principal console overlay with instructions/log."""
         world_time = snapshot["time"]
         panel_width = PANEL_WIDTH - 20
         panel_height = 200
@@ -234,6 +238,7 @@ class Renderer:
                 y += FONT_SIZE
 
     def _process_office_event(self, event: pygame.event.Event, world) -> bool:
+        """Handle keyboard navigation and actions while the office modal is open."""
         if not self.office:
             return False
         key = event.key
@@ -274,6 +279,7 @@ class Renderer:
         return True  # swallow other keys while office modal is open
 
     def _draw_office_modal(self, snapshot: dict) -> None:
+        """Render the headmistress office modal and its current tab view."""
         if not self.office or not self.office.visible:
             return
         width, height = self.screen.get_size()

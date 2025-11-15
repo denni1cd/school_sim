@@ -1,3 +1,5 @@
+"""Assert discipline policy effects on student needs."""
+
 from school_sim.bootstrap import load_policies_config, load_rooms, load_students, load_timetable
 from school_sim.world import World
 

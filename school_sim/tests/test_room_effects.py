@@ -1,3 +1,5 @@
+"""Verify room effects adjust student needs as configured."""
+
 import math
 
 from school_sim.room import Room

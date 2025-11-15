@@ -1,3 +1,5 @@
+"""Exercise the event bus and rule evaluation logic."""
+
 import pygame
 import pytest
 

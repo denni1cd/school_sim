@@ -130,6 +130,7 @@ def change_discipline(
 
 
 def _adjust_need(student, name: str, delta: float) -> None:
+    """Clamp and apply the delta to the requested student need."""
     if name not in student.needs:
         return
     updated = student.needs[name] + delta

@@ -1,3 +1,5 @@
+"""Confirm overlay payloads and policy canvases have the right contract."""
+
 import pygame
 
 from school_sim.events.scene_overlay import SceneOverlay

@@ -1,3 +1,5 @@
+"""Shared fixtures and helpers used across the test suite."""
+
 import os
 import sys
 from pathlib import Path

@@ -1,3 +1,5 @@
+"""Console entry point for launching the interactive School Sim experience."""
+
 from .main import main
 
 

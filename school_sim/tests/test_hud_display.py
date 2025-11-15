@@ -1,3 +1,5 @@
+"""Validate HUD snapshots include expected metrics."""
+
 import pytest
 import pygame
 

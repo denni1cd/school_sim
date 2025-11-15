@@ -1,0 +1,9 @@
+- id: "welcome_assembly"
+  when: "08:02"
+  scene: { image: "", caption: "Welcome assembly in the gym." }
+  once: true
+
+- id: "snack_break"
+  condition: "needs.hunger >= 85"
+  scene: { image: "", caption: "Snack Break Triggered!" }
+  once: false

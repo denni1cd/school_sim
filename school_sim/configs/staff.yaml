@@ -1,0 +1,7 @@
+staff:
+  - id: "hm"
+    role: "Headmistress"
+    name: "E. Sterling"
+  - id: "coach"
+    role: "Coach"
+    name: "R. Vega"

@@ -1,42 +1,67 @@
-# School Simulation Engine (Placeholder-First)
+# School Sim
 
-**Python:** 3.12  
-**Goal:** Engine-first simulation (PC movement + NPC schedules/activities) with clearly labeled **placeholders** for all visuals.
+School Sim is a deterministic headless-/GUI-capable school-management prototype where the Headmistress makes strategic choices via an office UI while the world simulation drives student needs, policies, clubs, curriculum, rating, and budget systems. This vertical slice currently implements Milestones M0–M8 from `technomancy/docs/specification.md`, so production code, configs, runtime outputs, and golden tests all live under the authoritative `/school_sim` tree.
 
-## Quickstart
+## Requirements
+
+- **Python 3.12** (Python 3.12 is required; please use a virtual environment)
+- **Dependencies:** `pygame`, `pyyaml`, `pytest` (install with `requirements.txt`)
+
+## Setup
+
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-make run      # launch interactive placeholder map
-make simulate # run headless scheduling loop
-make test
+python -m venv .venv
+python -m pip install -r requirements.txt
 ```
 
-### Principal Controls (Milestone D)
-- Press `P` in the pygame client to open the principal console overlay. While it is open you can acknowledge alerts with the number keys or issue a placeholder campus broadcast with `Shift+B`.
-- Feed scripted commands to the headless simulator via `--commands`:
-  ```bash
-  python -m game.simulation --ticks 600 --commands scripts/principal_demo.txt
-  ```
-  The command dispatcher understands schedule overrides, summons, alert acknowledgements, and broadcasts. See `docs/principal_controls.md` for the full syntax.
+- Environment variables such as `SCHOOL_SIM_MAX_LOOPS` bound interactive sessions (e.g., `SCHOOL_SIM_MAX_LOOPS=12 make run`).
+- Config-driven values (tick timing, budget, thresholds) live under `school_sim/configs/game.yaml`.
 
-### QA & Performance (Milestone E)
-- Fresh regression tests cover curfew overrides, alert cooldowns, cached path planning, and activity interruptions.
-- Long-run soak and profiling notes live in `docs/performance_report.md`; consult it before adjusting movement or alert logic.
-- Track outstanding issues in `docs/qa_backlog.md` and final verification in `docs/qa_signoff.md`.
-- Release context for Milestones D-E is summarised in `docs/milestone_release_notes.md`.
+## Running the Application
 
-### Map Selection
-- Default sandbox loads `data/campus_map_v1.json`, a full boarding school layout with dorm wings, classrooms, cafeteria, and support spaces.
-- Override the map in either headless or interactive modes via `--map`:
-  - `python -m game.play --map campus_map_v1`
-  - `python -m game.app --ticks 1200 --map data/campus_map_m5.json`
+- `make run` – launches the interactive renderer loop, draws HUD/overlays, and lets you open the Office modal (use `PYTHONPATH=.` on Windows to ensure module resolution).
+- `make simulate` – headless loop that writes deterministic logs to `school_sim/runtime/logs/` (log format includes `STATUS`, `RATING`, `EVENT`, and per-student rows).
+- `make demo` – drives a short headless snapshot session and auto-stops the interactive loop.
+- `make test` – runs `pytest` against `school_sim/tests/`, covering golden tests for HUD, policies, clubs, curriculum, economy, and hygiene.
 
-## Milestone 8 snapshot
-- `config/interactions.yaml` still supplies role and room templates, now enriched with activity keys emitted by the factory.
-- Activity catalog (`config/activities.yaml`) drives a hierarchy of activity classes with room-aware defaults, interaction keys, and placeholder metadata exposed through the factory.
-- Simulation now records structured activity start/end/interrupt events, updates room occupancy summaries via `RoomManager`, and exposes the stream through `simulation.event_logger` or `python -m game.simulation --log-activities -`.
-- Interaction text can incorporate activity labels and metadata, while the Pygame client displays a Tab-activated overlay summarizing the current room's occupants and tasks.
-- Principal management hooks provide CLI and overlay tooling for schedule overrides, summons, alerts, and broadcasts; alerts are published for over-capacity rooms, missed classes, and curfew violations.
-- `tests/activities/` verifies factory wiring and room reporting; scheduling, simulation, and interaction suites exercise the integrated flow end-to-end.
+## Controls & Office Navigation
+
+- **P** – Toggle the Principal Console overlay (displays announcements, saves/loads, and events).
+- **T** – Advance time by 15 minutes for rapid progression.
+- **E** – Trigger the next scripted event in `school_sim/configs/events.yaml`.
+- **B** – Broadcast a log message to the school (log-only behavior).
+- **L** – Load the most recent save file from `school_sim/runtime/saves/`.
+- **S** – Save a snapshot (JSON) capturing students, policies, curriculum, budget, and rating history.
+- **O** – Open the Headmistress Office modal:
+  1. **Policies** – switch uniform/disciple levels; each change deducts the configured budget cost and emits overlay captions.
+  2. **Clubs** – the latest snapshot displays each club with capacity, live membership count, overflow warnings, roster, and effects.
+  3. **Curriculum** – cycle tracks (General/STEM/Arts) and inspect the summarized classroom modifiers before applying.
+  4. **Staff** – read-only roster from `configs/staff.yaml`.
+  5. **Reports** – current time, rating, budget, rating breakdown (needs/compliance/clubs/attendance), latest event, and economy history entries.
+- **Esc/Enter** – close overlays or confirm Office actions; `Enter` applies a tab action while the Office is visible.
+- While the Office modal is open, arrow keys or `1–5` switch tabs; the renderer draws the modal with tab labels, helper hints, and wrapped bodies.
+
+## Project Layout
+
+- `/school_sim/` – production code modules, configs, runtime artifacts, and tests.
+- `/school_sim/configs/` – YAML definitions for events, room metadata, schedules, students, policies, clubs, curriculum, staff, and game constants.
+- `/school_sim/runtime/` – deterministic outputs (logs, saves, scenes) used for verification; cleaned as part of each milestone’s standing order.
+- `/school_sim/tests/` – golden acceptance tests referenced in the spec (office, policies, clubs, curriculum, economy, HUD, hygiene).
+- `/technomancy/` – staging (deliverables, scripts), plans, logs, and tooling; contains only artifacts, merge scripts, and workflow documents.
+
+## Configuration Highlights
+
+- **Policies (`configs/policies.yaml`)** – control default uniforms (`strict`, `moderate`, `relaxed`), discipline (`tough`, `fair`, `lenient`), and change costs.
+- **Clubs (`configs/clubs.yaml`)** – describe club schedules, rooms, capacities, effects, and economics (`create_club`, `assign_student` costs). Office and headless snapshots expose live roster data plus overflow penalties.
+- **Curriculum (`configs/curriculum.yaml`)** – selects the active track; classroom modifiers apply every tick to student needs in the `Classroom`.
+- **Game (`configs/game.yaml`)** – tick duration, win time, starting budget, rating penalties, and critical thresholds for hunger/energy/hygiene/stress.
+- **Events (`configs/events.yaml`)** – feeds overlays and headless logs; events fire via the event bus and record captioned scene data under `school_sim/events`.
+
+## Development & Verification Workflow
+
+- Follow `technomancy/prompts/technomancy_system_prompt.md` during milestone work: plan (ARCH), generate tactical plans (HIGH), stage deliverables, write merge scripts, verify headless and interactive runs, and publish `technomancy/logs/final_report_m<id>.md`.
+- Keep production code under `/school_sim` while staging happens beneath `/technomancy/deliverables/{src,tests}`; after each milestone, run the generated merge script and ensure `/technomancy/deliverables/` holds only scripts (no shippables).
+- Apply `PYTHONPATH=.` when invoking any Python-based command from the repo root to guarantee local packages supersede global installs.
+- Use `technomancy/tools/generate_acceptance_coverage.py` to keep tasks aligned with spec Acceptance IDs; cite `AC-xxx` references in plans and reports.
+
+Refer to `technomancy/docs/specification.md` (v1.4) for milestone acceptance criteria, config schemas, and the overall modernization roadmap.

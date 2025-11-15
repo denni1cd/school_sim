@@ -1,0 +1,21 @@
+clubs:
+  - id: "art_club"
+    name: "Art Club"
+    room: "Classroom"
+    meets_at: "08:30"
+    capacity: 8
+    effects:
+      stress: -0.3
+      energy: -0.1
+  - id: "track_team"
+    name: "Track & Field"
+    room: "Gym"
+    meets_at: "08:45"
+    capacity: 6
+    effects:
+      energy: -0.4
+      stress: -0.1
+      hygiene: -0.2
+costs:
+  create_club: 100
+  assign_student: 5

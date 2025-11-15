@@ -1,0 +1,39 @@
+start_budget: 1000
+start_rating: 75.0
+tick_ms: 100
+win_time: "09:00"
+needs_overrides:
+  hunger:
+    critical: 85
+    preempt: 65
+    room: cafeteria
+  energy:
+    critical: 25
+    preempt: 45
+    room: dorm
+  hygiene:
+    critical: 30
+    preempt: 60
+    room: bathroom
+  stress:
+    critical: 90
+    preempt: 50
+    room: lounge
+room_effects:
+  cafeteria: { hunger: -1.2 }
+  dorm: { energy: 1.6 }
+  lounge: { stress: -1.0 }
+  bathroom: { hygiene: 2.0 }
+  classroom: { stress: 0.6, knowledge: 0.5 }
+rating:
+  base: 75.0
+  flash_threshold: 2.0
+  weights:
+    needs: 0.6
+    compliance: 0.2
+    clubs: 0.1
+    attendance: 0.1
+  smoothing: 0.05
+  needs_baseline: 0.9
+  club_baseline: 0.5
+  attendance_baseline: 0.95

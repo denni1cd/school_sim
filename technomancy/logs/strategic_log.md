@@ -34,3 +34,17 @@
 - Milestone ID: M6
 - Event: Milestone Complete
 - Summary: Clubs documentation (“Clubs Deep Dive” in `README.md`) now explains configuration, costs, overflow, and the Clubs tab output; the associated golden tests and conda-run simulations passed, satisfying the M6 acceptance evidence.
+
+## Entry
+- Timestamp: 2025-11-15T15:02:00Z
+- Author Role: Arch Technomancer
+- Milestone ID: M7
+- Event: Milestone Complete
+- Summary: Curriculum documentation was extended with the new deep dive so track configs/effects/tests are clear, and the verification suite ran via `conda run -n simulation_test` per the plan; M7 acceptance checks are satisfied.
+
+## Entry
+- Timestamp: 2025-11-15T15:10:00Z
+- Author Role: Arch Technomancer
+- Milestone ID: M8
+- Event: Milestone Complete
+- Summary: Budget & Reports documentation now explains the economy module, rating breakdown, headless logs, and golden tests; `conda run -n simulation_test` verification confirmed the acceptance gates, so M8 is complete.

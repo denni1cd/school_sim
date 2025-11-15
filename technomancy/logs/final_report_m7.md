@@ -1,9 +1,9 @@
 # Final Report M7
 
 ## Verification Summary
-- `$env:PYTHONPATH='.'; conda run -n simulation_test pytest -q` ? **51 passed**, `pygame` deprecation warning only.
-- `$env:PYTHONPATH='.'; conda run -n simulation_test make simulate` ? wrote updated status log with curriculum column at `school_sim/runtime/logs/sim_log.txt`.
-- `$env:PYTHONPATH='.'; $env:SCHOOL_SIM_MAX_LOOPS='12'; conda run -n simulation_test make run` ? bounded loop exit after 12 frames, no exceptions, overlay visible by 08:02.
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` ? **58 passed**, pygame warning only.
+- `PYTHONPATH=. conda run -n simulation_test make simulate` ? wrote updated status log with curriculum column at `school_sim/runtime/logs/sim_log.txt`.
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run` ? bounded loop exit after 12 frames, no exceptions, overlay visible by 08:02.
 
 ## Headless Log (first 30 lines)
 ```
@@ -39,11 +39,8 @@ RATING,08:06,76.20,+0.20
 08:06,Becca,ClassroomA,ClassroomA,28.0,82.6,19.2,68.8
 ```
 
-## Changes Landed
-- Added `school_sim/curriculum.py` with track validation and per-minute classroom modifiers surfaced via `World.change_curriculum_track`.
-- Updated `school_sim/world.py`/`office.py` to apply curriculum deltas, cycle tracks from the Office modal, and emit `curriculum_overlay` events for SceneOverlay.
-- Logged curriculum/policy state in headless runs (`school_sim/headless.py`) and normalised curriculum restores in `school_sim/save_system.py` and save/load tests.
-- New/updated golden tests: `school_sim/tests/test_curriculum_modifiers.py`, `school_sim/tests/test_headless.py`, plus new office curriculum interaction test covering overlay emission.
+- Added the “Curriculum Deep Dive” section to `README.md` so developers know how to add tracks, where to set config keys, and which golden tests to rerun; staged the doc via the merge script.
+- The previously implemented curriculum module (`school_sim/curriculum.py`) remains in place, and the Office/world/headless wiring still handles track selection, overlays, and persistence as described earlier.
 
 ## Hygiene
 - `technomancy/deliverables/{src,tests}` cleared post-merge (scripts only remain).

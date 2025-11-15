@@ -1,9 +1,10 @@
 # Milestone M7 Staging Report
 
 ## Summary
-- Added `school_sim/curriculum.py` with track validation/apply helpers and wired classroom modifiers through `World.tick`.
-- Extended Office curriculum tab for track selection, emitting overlays via the event bus with updated scene overlay handling.
-- Updated headless runner/status logging, save-system curriculum restores, and new curriculum/headless golden tests.
+- Added the “Curriculum Deep Dive” instructions to `README.md`, covering config keys, track effects, and golden tests to rerun (`test_curriculum_modifiers.py`, `test_office_curriculum.py`).
+- Staged the updated README under `technomancy/deliverables/docs/readme.md` so the merge script delivers the documentation while keeping the staged tree clean.
 
 ## Tests
-- `$env:PYTHONPATH='src;..\..'; conda run -n simulation_test pytest -q tests`
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests`
+- `PYTHONPATH=. conda run -n simulation_test make simulate`
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run`

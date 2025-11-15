@@ -1,9 +1,9 @@
 # Final Report M8
 
 ## Verification Summary
-- `$env:PYTHONPATH='.'; conda run -n simulation_test pytest -q` ? **55 passed**, pygame warning only.
-- `$env:PYTHONPATH='.'; conda run -n simulation_test make simulate` ? status log with rating breakdown written to `school_sim/runtime/logs/sim_log.txt`.
-- `$env:PYTHONPATH='.'; $env:SCHOOL_SIM_MAX_LOOPS='12'; conda run -n simulation_test make run` ? bounded run completed without exceptions; overlay fired by **08:02**.
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` ? **58 passed**, pygame warning only.
+- `PYTHONPATH=. conda run -n simulation_test make simulate` ? status log with rating breakdown written to `school_sim/runtime/logs/sim_log.txt`.
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run` ? bounded run completed without exceptions; overlay fired by **08:02**.
 
 ## Headless Log (first 30 lines)
 ```
@@ -40,9 +40,8 @@ RATING,08:06,76.83,+0.30
 ```
 
 ## Changes Landed
-- Added `school_sim/economy.py` with transaction recording and routed all budget operations through it (`school_sim/world.py:376`, `school_sim/clubs.py:50`).
-- Refactored rating computation via `school_sim/rating.py:28`, updated config baselines (`school_sim/configs/game.yaml:1`), and bubbled breakdown data through world snapshots/logs/tests.
-- Enhanced Office reports, renderer HUD, and headless status output to surface rating components and recent transactions (`school_sim/office.py:299`, `school_sim/renderer.py:119`, `school_sim/headless.py:30`).
+- Added the “Budget & Reports Deep Dive” to `README.md`, documenting the economy module, rating breakdown, headless logs, transaction history, and tests to rerun; this README change was staged via `technomancy/deliverables/docs/readme.md` and merged through `merge_m8.py`.
+- Earlier economy/rating engineering (economy.py, rating.py, Office/headless surfaces) remains intact and continues to feed the documentation just updated.
 
 ## Hygiene
 - `technomancy/deliverables/{src,tests}` cleared post-merge (scripts only remain).

@@ -60,6 +60,13 @@ python -m pip install -r requirements.txt
 - Overflow penalties log scene overlay events, add stress, and reduce the engagement ratio fed to the rating system; the office `Clubs` tab highlights capacity status plus roster details to help you rebalance membership.
 - Use `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` to verify the club golden tests (`test_clubs_capacity.py`, `test_club_assignment_budget.py`, `test_office_reports.py`) whenever club behavior changes.
 
+## Budget & Reports Deep Dive
+
+- The `economy.py` module centralizes budget adjustments; every policy or club action passes through `World._adjust_budget`, which records a timestamped transaction in `economy_history`. Transactions now appear in `Office Reports`, headless logs, and saves (visible under `school_sim/runtime/logs/` and `school_sim/runtime/saves/`).
+- `rating.py` exposes a breakdown of the weighted components (needs, compliance, clubs, attendance). The HUD and headless `STATUS` lines surface this breakdown each tick, so you can tell how each pillar contributes to the total rating.
+- The Offices reports section now shows budget, rating delta, attendance ratio, rating breakdown, outward events, recent transactions, and policy/history entries, so verifying finances and KPIs is just a glance away.
+- To extend the budget/rating system, update `economy.py`, `rating.py`, and the `World` snapshot logic, then rerun `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` along with `make simulate` and `make run`. Pay special attention to `test_economy_budget.py`, `test_rating_breakdown.py`, and `test_office_reports.py` when adjusting economy or reporting behavior.
+
 ## Project Layout
 
 - `/school_sim/` – production code modules, configs, runtime artifacts, and tests.

@@ -1,9 +1,9 @@
 # Final Report M6
 
 ## Verification Summary
-- `PYTHONPATH='.' pytest -q school_sim/tests` ? **48 passed**, pygame warning only.
-- `make simulate` (`PYTHONPATH='.'`) ? completed without errors; log written to `school_sim/runtime/logs/sim_log.txt`.
-- `SCHOOL_SIM_MAX_LOOPS=12 make run` (`PYTHONPATH='.'`) ? loop auto-stopped after 12 frames; verified no crashes and bounded output.
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` ? **58 passed**, pygame warning only.
+- `PYTHONPATH=. conda run -n simulation_test make simulate` ? completed without errors; log written to `school_sim/runtime/logs/sim_log.txt`.
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run` ? loop auto-stopped after 12 frames; verified no crashes and bounded output.
 
 ## Headless Log (first 30 lines)
 ```
@@ -41,10 +41,9 @@ RATING,08:08,76.60,+0.20
 - Overlay confirmed active by **08:02** (event logged).
 
 ## Changes Landed
-- Added club system (`school_sim/clubs.py`) plus world/student integration (club assignments, meeting effects, overflow penalties, budget/rating adjustments).
-- Updated save/load persistence, office UI (club roster reporting), headless runner, and configs to support clubs.
-- Introduced golden tests for club assignment budget cost, capacity overflow, office summaries, and save/load club fields.
-- README documents `SCHOOL_SIM_MAX_LOOPS` helper for bounded interactive runs.
+- Added club documentation (Clubs Deep Dive) describing config schema, capacity/cost behavior, and office roster monitoring.
+- README now highlights the `Clubs` tab output alongside policy/clubs/curriculum operations so make run behavior is documented.
+- Earlier club system additions (`school_sim/clubs.py`, world/headless/office integration) remain in place as described previously.
 
 ## Hygiene
 - `technomancy/deliverables/src` and `technomancy/deliverables/tests` cleared post-merge (scripts only remain).

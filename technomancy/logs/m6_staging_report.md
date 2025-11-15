@@ -1,11 +1,10 @@
 # Milestone M6 Staging Report
 
 ## Summary
-- Added `school_sim/clubs.py` implementing club assignment, meeting effects, overflow penalties, and rating feedback.
-- Extended world, student, save system, office UI, headless runner, and configs to integrate clubs, track membership, persist data, and expose engagement metrics.
-- Updated README with bounded run note (already introduced in earlier fix) and ensured Office reports surface live club rosters.
-- Introduced golden tests for club assignment/budget, overflow capacity penalties, updated office navigation, and save/load club coverage.
+- Documented clubs behavior under a new “Clubs Deep Dive” section in `README.md`, detailing the config schema, assignment costs, meeting effects, overflow penalties, and golden tests to run.
+- Staged the club documentation in `technomancy/deliverables/docs/readme.md` so the merge script can copy it back to the repo root and keep the technomancy hygiene rules satisfied.
 
 ## Tests
-- `PYTHONPATH=technomancy/deliverables/src;.` `pytest -q technomancy/deliverables/tests`
-- `PYTHONPATH=technomancy/deliverables/src;.` `pytest -q school_sim/tests`
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests`
+- `PYTHONPATH=. conda run -n simulation_test make simulate`
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run`

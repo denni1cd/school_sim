@@ -1,9 +1,9 @@
 # Final Report M5
 
 ## Verification Summary
-- `pytest -q school_sim/tests` ? **45 passed**, pygame warning only.
-- `make simulate` (PYTHONPATH=.) ? completed without errors; latest log `school_sim/runtime/logs/sim_log.txt` captured.
-- `make run` (PYTHONPATH=.) ? 60s loop with policy toggling spot-check; no crashes and Office actions responsive.
+- `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` ? **58 passed**, pygame warning only.
+- `PYTHONPATH=. conda run -n simulation_test make simulate` ? completed without errors; latest log `school_sim/runtime/logs/sim_log.txt` captured.
+- `SCHOOL_SIM_MAX_LOOPS=12 PYTHONPATH=. conda run -n simulation_test make run` ? 60s loop with policy toggling spot-check; no crashes and Office actions responsive.
 
 ## Headless Log (first 30 lines)
 ```
@@ -41,10 +41,9 @@ RATING,08:08,76.60,+0.20
 - Overlay confirmed active by **08:02** via event entry.
 
 ## Changes Landed
-- Added `school_sim/policies.py` and wove uniform/discipline effects + compliance tracking through `school_sim/world.py`, `school_sim/bootstrap.py`, and `school_sim/headless.py`.
-- Enabled interactive policy changes in the Office (`school_sim/office.py`, `school_sim/renderer.py`, `school_sim/main.py`) with overlay/console feedback.
-- Scene overlay now listens for `policy_overlay` events (`school_sim/events/scene_overlay.py`).
-- New golden tests: `school_sim/tests/test_policies_uniforms.py`, `test_discipline_effects.py`, `test_office_navigation.py`.
+- Added policy history logging in `school_sim/world.py` and surfaced the last three decisions in `school_sim/office.py`, giving reports a record of policy switches alongside economy history.
+- Introduced `school_sim/tests/test_policy_history.py` to validate the capped history plus the updated `test_office_reports.py` to look for the new report lines.
+- Office policy infrastructure (uniform/discipline toggles + overlays) remains wired through the renderer, bootstrap loaders, and headless runner as previously noted.
 
 ## Hygiene
 - `technomancy/deliverables/src` and `technomancy/deliverables/tests` cleared after merge (scripts only).

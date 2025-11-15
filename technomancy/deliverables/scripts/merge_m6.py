@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 DELIVERABLES = ROOT / "technomancy" / "deliverables"
 STAGING_SRC = DELIVERABLES / "src"
 STAGING_TESTS = DELIVERABLES / "tests"
+STAGING_DOCS = DELIVERABLES / "docs"
 PRODUCTION_ROOT = ROOT / "school_sim"
 PRODUCTION_TESTS = PRODUCTION_ROOT / "tests"
 
@@ -39,10 +40,22 @@ def main() -> None:
 
     _copytree(package_src, PRODUCTION_ROOT)
 
+    tests_copied = False
     if STAGING_TESTS.exists():
         for test_file in STAGING_TESTS.rglob("*.py"):
             destination = PRODUCTION_TESTS / test_file.relative_to(STAGING_TESTS)
             _copy_file(test_file, destination)
+        tests_copied = True
+
+    if STAGING_DOCS.exists():
+        for doc_file in STAGING_DOCS.rglob("*"):
+            if not doc_file.is_file():
+                continue
+            destination = ROOT / doc_file.relative_to(STAGING_DOCS)
+            _copy_file(doc_file, destination)
+        docs_copied = True
+    else:
+        docs_copied = False
 
     _clear_pycache(PRODUCTION_ROOT)
 
@@ -50,10 +63,15 @@ def main() -> None:
         shutil.rmtree(package_src)
     if STAGING_TESTS.exists():
         shutil.rmtree(STAGING_TESTS)
+    if STAGING_DOCS.exists():
+        shutil.rmtree(STAGING_DOCS)
 
     print("Merge M6 complete.")
     print(f"  - Updated {PRODUCTION_ROOT}")
-    print("  - Copied staged tests into school_sim/tests")
+    if tests_copied:
+        print("  - Copied staged tests into school_sim/tests")
+    if docs_copied:
+        print("  - Copied staged docs into project root")
     print("  - Cleared technomancy/deliverables/src and tests")
 
 

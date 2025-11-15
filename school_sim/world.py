@@ -88,6 +88,7 @@ class World:
             clubs_config or {},
             budget_callback=self._adjust_budget,
         )
+        self.policy_history: List[dict] = []
 
         if self.event_bus:
             self.event_bus.subscribe("event_fired", self._on_event_fired)
@@ -195,6 +196,7 @@ class World:
             "curriculum": self.curriculum_state.copy(),
             "rating_breakdown": self.rating_breakdown.copy(),
             "economy_history": serialise_history(self.economy_history),
+            "policy_history": list(self.policy_history),
             "attendance_ratio": self._attendance_ratio(),
             "students": [],
             "events": events,
@@ -312,6 +314,7 @@ class World:
             delta = budget_after - self.budget
             self.budget = budget_after
             self._record_transaction(delta, f"Policy change: uniforms -> {self.policy_state['uniforms'].title()}")
+            self._log_policy_change("uniforms", self.policy_state["uniforms"], delta, caption)
         self._announce_policy_change("uniforms", caption)
         return caption
 
@@ -327,6 +330,7 @@ class World:
             delta = budget_after - self.budget
             self.budget = budget_after
             self._record_transaction(delta, f"Policy change: discipline -> {self.policy_state['discipline'].title()}")
+            self._log_policy_change("discipline", self.policy_state["discipline"], delta, caption)
         self._announce_policy_change("discipline", caption)
         return caption
 
@@ -495,6 +499,20 @@ class World:
             delta=delta,
             balance=self.budget,
         )
+
+    def _log_policy_change(self, policy_key: str, value: str, delta: int, caption: str) -> None:
+        timestamp = minutes_to_timestr(self.time_minutes)
+        entry = {
+            "time": timestamp,
+            "policy": policy_key,
+            "value": value.title(),
+            "delta": int(delta),
+            "balance": int(self.budget),
+            "caption": caption,
+        }
+        self.policy_history.append(entry)
+        if len(self.policy_history) > 5:
+            self.policy_history.pop(0)
 
     def _adjust_budget(self, delta: int, reason: str = "Budget adjustment") -> bool:
         if delta == 0:

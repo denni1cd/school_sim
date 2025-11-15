@@ -41,6 +41,25 @@ python -m pip install -r requirements.txt
 - **Esc/Enter** – close overlays or confirm Office actions; `Enter` applies a tab action while the Office is visible.
 - While the Office modal is open, arrow keys or `1–5` switch tabs; the renderer draws the modal with tab labels, helper hints, and wrapped bodies.
 
+## Policies Deep Dive
+
+- Policies are configured in `school_sim/configs/policies.yaml` (default uniforms `moderate`, discipline `fair`, `change_policy` cost).  
+- Every tick applies uniform/discipline effects to needs/compliance; uniform adjustments tweak hygiene/stress, discipline edits compliance/kg and stress relief.  
+- Policy changes are handled through the Office (Policies tab) by moving the cursor to `Uniforms`/`Discipline` and hitting `Enter`; the change deducts the configured budget cost, emits an overlay via `school_sim/world.py`, and records a history entry surfaced in the Reports tab.  
+- The policy history log keeps the last five entries; headless logs include this history if you inspect `school_sim/runtime/logs/sim_log.txt`.  
+- Budget deductions and rating shifts following a policy change happen immediately, so you can observe `make run` output or the HUD while toggling policies in a live session.  
+- Use `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` to verify policy golden tests (`test_policies_uniforms.py`, `test_discipline_effects.py`, `test_policy_history.py`) whenever you change policy logic.  
+
+## Clubs Deep Dive
+
+- To add a new club, edit `school_sim/configs/clubs.yaml`: create a dictionary entry with required keys `id`, `name`, `room`, `meets_at`, `capacity`, and `effects` (per-minute deltas for needs/stress/energy). Optionally adjust `costs.assign_student` if clubs should charge more for onboarding.
+- After updating the config, re-run `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` to ensure the golden tests (`test_club_assignment_budget.py`, `test_clubs_capacity.py`, etc.) still pass, and the Office `Clubs` tab will immediately reflect the new entry next time you run `make run`.
+- Configure clubs in `school_sim/configs/clubs.yaml`: each entry sets an ID, name, room, `meets_at` time, capacity, and per-tick `effects`. Budget costs for creating or assigning students appear under `costs.create_club` and `costs.assign_student`.
+- `ClubsManager` handles assignments, deducting the `assign_student` cost from budget and adding the student to the club roster; over-capacity assignments still succeed but trigger stress penalties and rating warnings.
+- Clubs apply their `effects` during meetings (when the world time matches `meets_at`), moving members to the club room, applying need deltas, and recording engagement samples so clubs influence rating.
+- Overflow penalties log scene overlay events, add stress, and reduce the engagement ratio fed to the rating system; the office `Clubs` tab highlights capacity status plus roster details to help you rebalance membership.
+- Use `PYTHONPATH=. conda run -n simulation_test pytest -q school_sim/tests` to verify the club golden tests (`test_clubs_capacity.py`, `test_club_assignment_budget.py`, `test_office_reports.py`) whenever club behavior changes.
+
 ## Project Layout
 
 - `/school_sim/` – production code modules, configs, runtime artifacts, and tests.

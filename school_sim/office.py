@@ -338,6 +338,19 @@ class OfficeScreen:
             latest = events[-1]
             caption = latest.get("caption") or latest.get("id") or "Recent event"
             lines.append(f"Last Event: {caption}")
+        policy_history = snapshot.get("policy_history") or []
+        if policy_history:
+            lines.append("Recent policy changes:")
+            for record in policy_history[-3:]:
+                delta = int(record.get("delta", 0))
+                policy_label = (record.get("policy") or "policy").title()
+                value = record.get("value", "")
+                time_str = record.get("time", "--:--")
+                caption = (record.get("caption") or "").strip()
+                description = f"  {time_str} {policy_label}: {value} ({delta:+d})"
+                if caption:
+                    description += f" - {caption}"
+                lines.append(description)
         if history:
             lines.append("Recent Transactions:")
             for entry in reversed(history[-3:]):
@@ -413,3 +426,4 @@ class OfficeScreen:
             return OfficeActionResult(message=str(exc))
 
         return OfficeActionResult(message=caption, overlay_caption=caption)
+

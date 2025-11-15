@@ -15,6 +15,16 @@ def test_reports_include_breakdown_and_transactions():
             {"time": "08:10", "reason": "Policy change: uniforms -> Strict", "delta": -50, "balance": 950},
             {"time": "08:15", "reason": "Club assignment: Alice -> Art Club", "delta": -5, "balance": 945},
         ],
+        "policy_history": [
+            {
+                "time": "08:20",
+                "policy": "uniforms",
+                "value": "Strict",
+                "delta": -50,
+                "balance": 950,
+                "caption": "Uniform policy set to Strict.",
+            }
+        ],
         "attendance_ratio": 0.92,
     }
 
@@ -24,3 +34,4 @@ def test_reports_include_breakdown_and_transactions():
     assert "Needs: 58.0" in text
     assert "Transactions:" in text
     assert any("Policy change" in line for line in lines)
+    assert "Recent policy changes" in text

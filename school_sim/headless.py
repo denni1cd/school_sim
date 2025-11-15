@@ -1,6 +1,4 @@
-"""
-Headless simulation runner that produces deterministic logs for Milestone M3.
-"""
+"""Headless simulation runner that writes deterministic logs for automation."""
 from __future__ import annotations
 
 import argparse
@@ -33,6 +31,7 @@ def run_headless(
     log_path: Path = DEFAULT_LOG_PATH,
     load_path: Path | None = None,
 ) -> Path:
+    """Run the simulation without rendering and emit the deterministic log file."""
     log_path = Path(log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -108,6 +107,7 @@ def run_headless(
 
 
 def main() -> None:
+    """CLI entry point that parses args and runs the headless loop."""
     parser = argparse.ArgumentParser(description="Run the school simulation in headless mode.")
     parser.add_argument("--ticks", type=int, default=300, help="Number of ticks to simulate (default: 300).")
     parser.add_argument("--load", type=Path, help="Optional save file to load before simulation.")

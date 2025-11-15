@@ -1,3 +1,5 @@
+"""Curriculum track definitions, captions, and classroom modifiers."""
+
 from __future__ import annotations
 
 from typing import Dict, Optional

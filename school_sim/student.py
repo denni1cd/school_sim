@@ -1,4 +1,6 @@
 import math
+"""Student behaviour, needs, scheduling, and movement utilities."""
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
@@ -47,6 +49,7 @@ MIN_HUNGER_FOR_MEAL = 45.0
 
 @dataclass
 class Student:
+    """Represents a single student, their needs, schedule, and movement."""
     name: str
     homeroom: str  # e.g. "homeroom_A" - used to look up schedule
     current_room: str  # name of the room they're currently in
@@ -91,11 +94,7 @@ class Student:
         rooms: Dict[str, Any],
         overrides: Optional[Dict[str, Dict[str, Any]]] = None,
     ):
-        """
-        Decide where to go next.
-        1. Check for crisis needs (cafeteria, dorm, bathroom, lounge).
-        2. Otherwise follow schedule for this time slot.
-        """
+        """Decide the next room target based on needs and schedule."""
         total_minutes = _minutes_from_timestr(world_time_str)
         minute_of_day = total_minutes % (24 * 60)
         in_sleep_window = _in_windows(minute_of_day, SLEEP_WINDOWS)
@@ -207,18 +206,21 @@ class Student:
         self.target_room = self.find_room_by_type(stress_target, rooms)
 
     def find_room_by_type(self, room_type: str, rooms: Dict[str, Any]) -> Optional[str]:
+        """Locate a room of the requested type in the world map."""
         for room_name, room in rooms.items():
             if room.room_type == room_type:
                 return room_name
         return None
 
     def is_traveling(self) -> bool:
+        """Return True when the student is en route to another room."""
         return self.target_room is not None and self.current_room != self.target_room
 
     def _room_center(self, room: Any) -> tuple[float, float]:
         return room.x + room.width / 2.0, room.y + room.height / 2.0
 
     def move_towards_target(self, rooms: Dict[str, Any], minutes: float):
+        """Advance the student towards their target room, updating position."""
         if not self.target_room:
             room = rooms.get(self.current_room)
             if room:
@@ -253,10 +255,7 @@ class Student:
             self.y += dy * ratio
 
     def record_attendance(self, world_time_str: str, expected_room: Optional[str], *, traveling: bool = False):
-        """
-        Track if she's skipping what she 'should' be doing.
-        This is the seed for discipline/enforcement systems.
-        """
+        """Record whether the student attended their expected room this tick."""
         in_class_when_she_should_be = expected_room is not None and expected_room == self.current_room
         if expected_room is not None and traveling and self.target_room == expected_room:
             in_class_when_she_should_be = True

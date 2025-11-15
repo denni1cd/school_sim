@@ -1,3 +1,5 @@
+"""Save/load helpers for world snapshots, including curriculum/budget data."""
+
 from __future__ import annotations
 
 import json
@@ -12,6 +14,7 @@ from .economy import restore_history, serialise_history
 
 @dataclass
 class SaveResult:
+    """Metadata describing the result of the most recent save."""
     path: Path
     snapshot: dict
 
@@ -21,7 +24,9 @@ DEFAULT_SAVE_DIR = PACKAGE_ROOT / "runtime" / "saves"
 
 
 class SaveSystem:
+    """Manage snapshots, persistence, and world restoration."""
     def __init__(self, save_dir: Path | str = DEFAULT_SAVE_DIR):
+        """Prepare the save directory used for persistence."""
         self.save_dir = Path(save_dir)
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -137,4 +142,5 @@ class SaveSystem:
 
 
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+    """Clamp a value within inclusive bounds useful for need metrics."""
     return max(minimum, min(maximum, value))

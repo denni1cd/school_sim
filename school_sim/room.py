@@ -1,3 +1,5 @@
+"""Room definitions and passive effect helpers."""
+
 from dataclasses import dataclass, field
 from typing import Dict
 
@@ -12,6 +14,7 @@ ROOM_TYPE_EFFECTS_PER_MINUTE: Dict[str, Dict[str, float]] = {
 
 @dataclass
 class Room:
+    """Spatial room with type, size, and effect definitions."""
     name: str
     room_type: str  # "classroom", "cafeteria", "dorm", "bathroom", "lounge"
     x: int
@@ -22,10 +25,7 @@ class Room:
     knowledge_gain: float = 0.0
 
     def apply_effects(self, student, minutes: float) -> Dict[str, float]:
-        """
-        Apply the passive effects of being in this room for `minutes` minutes.
-        Returns a mapping of need names to the net delta applied after clamping.
-        """
+        """Apply the room's per-minute modifiers to a student's needs."""
         if minutes <= 0:
             return {}
 

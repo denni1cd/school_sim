@@ -1,6 +1,4 @@
-"""
-Core configuration loaders shared across interactive and headless modes.
-"""
+"""Core configuration loaders shared across interactive and headless modes."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -18,6 +16,7 @@ CONFIG_DIR = PACKAGE_ROOT / "configs"
 
 
 def _load_yaml(path: Path | str) -> dict:
+    """Read a YAML file and return its contents as a dict (empty if missing)."""
     resolved = Path(path)
     if not resolved.exists():
         return {}
@@ -40,6 +39,7 @@ def _merge_with_defaults(defaults: dict, payload: dict | None) -> dict:
 
 
 def load_rooms(path: Path | str = CONFIG_DIR / "rooms.yaml") -> Dict[str, Room]:
+    """Load room definitions and instantiate Room objects keyed by name."""
     data = _load_yaml(path)
     rooms = data.get("rooms", {})
     return {
@@ -56,22 +56,21 @@ def load_rooms(path: Path | str = CONFIG_DIR / "rooms.yaml") -> Dict[str, Room]:
 
 
 def load_students(path: Path | str = CONFIG_DIR / "students.yaml") -> List[Student]:
+    """Load the student list from YAML and instantiate Student dataclasses."""
     data = _load_yaml(path)
     students = data.get("students", [])
     return [Student(**entry) for entry in students]
 
 
 def load_timetable(path: Path | str = CONFIG_DIR / "schedule.yaml") -> Timetable:
+    """Load homeroom schedules from the schedule configuration."""
     data = _load_yaml(path)
     schedules = data if isinstance(data, dict) else {}
     return Timetable(homeroom_schedules=schedules)
 
 
 def load_game_config(path: Path | str = CONFIG_DIR / "game.yaml") -> dict:
-    """
-    Load global game configuration. Returns an empty dict if the file is absent,
-    allowing downstream code to fall back to sensible defaults.
-    """
+    """Load global game configuration and merge with defaults."""
     defaults = {
         "start_budget": 1000,
         "start_rating": 75.0,
@@ -83,9 +82,7 @@ def load_game_config(path: Path | str = CONFIG_DIR / "game.yaml") -> dict:
 
 
 def load_policies_config(path: Path | str = CONFIG_DIR / "policies.yaml") -> dict:
-    """
-    Load policy configuration, providing defaults when the file is absent.
-    """
+    """Load policy configuration, supplying defaults (uniforms, discipline, costs)."""
     defaults = {
         "uniforms": "moderate",
         "discipline": "fair",
@@ -105,9 +102,7 @@ def load_policies_config(path: Path | str = CONFIG_DIR / "policies.yaml") -> dic
 
 
 def load_clubs_config(path: Path | str = CONFIG_DIR / "clubs.yaml") -> dict:
-    """
-    Load club configuration, normalising structure and defaults.
-    """
+    """Load the clubs configuration and normalise entries with default costs."""
     defaults = {
         "clubs": [],
         "costs": {"create_club": 100, "assign_student": 5},
@@ -137,9 +132,7 @@ def load_clubs_config(path: Path | str = CONFIG_DIR / "clubs.yaml") -> dict:
 
 
 def load_curriculum_config(path: Path | str = CONFIG_DIR / "curriculum.yaml") -> dict:
-    """
-    Load curriculum configuration with a default active track.
-    """
+    """Load the curriculum configuration and ensure an active track is present."""
     defaults = {"active_track": "General"}
     payload = _load_yaml(path)
     config = _merge_with_defaults(defaults, payload)
@@ -149,9 +142,7 @@ def load_curriculum_config(path: Path | str = CONFIG_DIR / "curriculum.yaml") ->
 
 
 def load_staff_config(path: Path | str = CONFIG_DIR / "staff.yaml") -> dict:
-    """
-    Load staff roster for office summaries.
-    """
+    """Load staff entries for use in the Office Staff tab."""
     defaults = {"staff": []}
     payload = _load_yaml(path)
     config = _merge_with_defaults(defaults, payload)

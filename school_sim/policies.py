@@ -1,3 +1,5 @@
+"""Policy effects, compliance, and budget change helpers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -37,14 +39,14 @@ DISCIPLINE_COMPLIANCE: Dict[str, float] = {
 
 @dataclass
 class PolicyApplication:
+    """Aggregated policy effect results for a student tick."""
+
     needs_delta: Dict[str, float]
     compliance: float
 
 
 def apply_policy_effects(student, policy_state: Dict[str, str], *, dt_minutes: float = 1.0) -> PolicyApplication:
-    """
-    Apply uniforms and discipline effects to a student and return the aggregated delta/compliance.
-    """
+    """Apply uniform/discipline effects to a student and return needs/compliance deltas."""
     needs_delta: Dict[str, float] = {}
     uniforms = (policy_state.get("uniforms") or "moderate").lower()
     discipline = (policy_state.get("discipline") or "fair").lower()
@@ -86,10 +88,7 @@ def change_uniform(
     costs: Dict[str, int],
     budget: int,
 ) -> Tuple[int, str]:
-    """
-    Update the uniforms level, deducting the configured budget cost.
-    Returns the new budget balance and a caption describing the change.
-    """
+    """Update uniforms, charge the policy change cost, and return caption+budget."""
     target = new_level.lower()
     if target not in UNIFORM_EFFECTS:
         raise ValueError(f"Invalid uniform level: {new_level}")
@@ -113,10 +112,7 @@ def change_discipline(
     costs: Dict[str, int],
     budget: int,
 ) -> Tuple[int, str]:
-    """
-    Update the discipline stance with the configured budget cost.
-    Returns the new budget and descriptive caption.
-    """
+    """Update discipline stance, enforce cost, and return caption plus new balance."""
     target = new_level.lower()
     if target not in DISCIPLINE_STRESS:
         raise ValueError(f"Invalid discipline level: {new_level}")

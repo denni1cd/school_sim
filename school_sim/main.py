@@ -1,3 +1,5 @@
+"""Entrypoint for the interactive School Sim experience."""
+
 import argparse
 import os
 from pathlib import Path
@@ -30,12 +32,14 @@ RUNTIME_DIR = PACKAGE_ROOT / "runtime"
 
 
 def parse_args() -> argparse.Namespace:
+    """Return parsed CLI arguments (currently only --load)."""
     parser = argparse.ArgumentParser(description="Interactive School Simulation")
     parser.add_argument("--load", type=Path, help="Optional save file to load at startup.")
     return parser.parse_args()
 
 
 def main() -> None:
+    """Compose all simulation services and start the interactive loop."""
     args = parse_args()
 
     game_config = load_game_config()

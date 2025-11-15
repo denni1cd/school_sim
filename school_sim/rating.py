@@ -1,3 +1,5 @@
+"""Rating computation helpers and breakdown structure."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,6 +21,7 @@ DEFAULT_BASELINES = {
 
 @dataclass(frozen=True)
 class RatingResult:
+    """Container for computed rating value, delta, flash, and breakdown."""
     value: float
     delta: float
     flash: bool
@@ -40,7 +43,8 @@ def compute_rating(
     weights: Dict[str, float],
     flash_threshold: float,
     smoothing: float,
-) -> RatingResult:
+    ) -> RatingResult:
+    """Compute the weighted rating based on needs, compliance, clubs, and attendance."""
     weights = _normalise_weights(weights or DEFAULT_WEIGHTS)
     needs_health = 1.0
     if total_students > 0:

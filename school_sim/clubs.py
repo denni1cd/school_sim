@@ -1,3 +1,5 @@
+"""Club management helpers (configuration parsing, assignment, meetings)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,6 +10,8 @@ from .timetable import minutes_to_timestr
 
 @dataclass
 class Club:
+    """Metadata for a single club including schedule and members."""
+
     club_id: str
     name: str
     room: str
@@ -17,11 +21,15 @@ class Club:
     members: List[str] = field(default_factory=list)
 
     def has_meeting_at(self, time_minutes: int) -> bool:
+        """Return True when the club meets at the supplied minute of day."""
         return minutes_to_timestr(time_minutes) == self.meets_at
 
 
 class ClubsManager:
+    """Manage club assignments, meetings, and overflow handling."""
+
     def __init__(self, config: dict, *, budget_callback):
+        """Create a ClubsManager for the given config and budget callback."""
         self._clubs: Dict[str, Club] = {}
         self._active_sessions: Dict[str, float] = {}
         self._costs = (config or {}).get("costs", {})
@@ -40,14 +48,17 @@ class ClubsManager:
 
     @property
     def clubs(self) -> Iterable[Club]:
+        """Yield the configured clubs."""
         return self._clubs.values()
 
     def get(self, club_id: Optional[str]) -> Optional[Club]:
+        """Return the Club instance for the provided identifier."""
         if not club_id:
             return None
         return self._clubs.get(club_id)
 
     def assign_student(self, student, club_id: str) -> bool:
+        """Assign a student to a club, charging the assignment cost if configured."""
         club = self._clubs.get(club_id)
         if not club:
             return False
@@ -70,6 +81,7 @@ class ClubsManager:
         return True
 
     def remove_student(self, student, club_id: str) -> None:
+        """Remove a student from the given club roster."""
         club = self._clubs.get(club_id)
         if not club:
             return
@@ -79,6 +91,7 @@ class ClubsManager:
             student.club_id = None
 
     def apply_club_tick(self, world, dt_minutes: float) -> None:
+        """Start meetings when scheduled and process active sessions."""
         self._start_sessions(world.time_minutes)
         finished = []
         for club_id, remaining in list(self._active_sessions.items()):
@@ -96,11 +109,13 @@ class ClubsManager:
             self._active_sessions.pop(club_id, None)
 
     def _start_sessions(self, time_minutes: int) -> None:
+        """Open meetings (30 minutes) for clubs whose schedule matches the current time."""
         for club in self._clubs.values():
             if club.has_meeting_at(time_minutes):
                 self._active_sessions[club.club_id] = 30.0
 
     def _process_club_meeting(self, world, club: Club, dt_minutes: float) -> None:
+        """Apply club effects for active attendees and handle overflow penalties."""
         if not club.members:
             return
 
@@ -134,6 +149,7 @@ class ClubsManager:
             world.register_club_engagement(ratio)
 
     def _apply_overflow_penalty(self, world, student, dt_minutes: float) -> None:
+        """Apply penalties when a club has more attendees than capacity."""
         student.needs["stress"] = _clamp(student.needs["stress"] + 0.5 * dt_minutes)
         world.record_event(
             event_id="club_overflow",
@@ -144,4 +160,5 @@ class ClubsManager:
 
 
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+    """Clamp a float between the provided bounds."""
     return max(minimum, min(maximum, value))

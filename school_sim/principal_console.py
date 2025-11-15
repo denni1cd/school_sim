@@ -1,3 +1,5 @@
+"""Principal Console overlay controls for debugging actions."""
+
 from __future__ import annotations
 
 from collections import deque
@@ -12,20 +14,21 @@ from .timetable import minutes_to_timestr
 
 
 class PrincipalConsole:
-    """
-    Manages the Principal Console overlay, including debug shortcuts and logs.
-    """
+    """Manage the Principal Console overlay, including shortcuts and logs."""
 
     def __init__(self, event_bus: EventBus, events_catalog: List[Event]):
+        """Initialize with the event bus and catalog for triggering events."""
         self.event_bus = event_bus
         self.events_catalog = events_catalog
         self.visible = False
         self.log: Deque[str] = deque(maxlen=10)
 
     def toggle(self) -> None:
+        """Toggle the visibility of the console overlay."""
         self.visible = not self.visible
 
     def handle_key(self, key: int, world) -> None:
+        """Translate console shortcuts into world actions."""
         if key == pygame.K_t:
             self._advance_time(world, 15)
         elif key == pygame.K_e:

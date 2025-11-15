@@ -1,3 +1,5 @@
+"""Headmistress Office modal, tab handling, and display helpers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,6 +8,8 @@ from typing import Callable, List, Optional
 
 @dataclass(frozen=True)
 class OfficeView:
+    """Snapshot view produced by each tab for rendering."""
+
     key: str
     title: str
     lines: List[str]
@@ -13,6 +17,8 @@ class OfficeView:
 
 @dataclass(frozen=True)
 class OfficeTab:
+    """Metadata describing each Office tab, including builder callback."""
+
     key: str
     title: str
     builder: Callable[[Optional[dict]], List[str]]
@@ -20,12 +26,14 @@ class OfficeTab:
 
 @dataclass(frozen=True)
 class OfficeActionResult:
+    """Result returned from actions triggered inside the Office."""
+
     message: Optional[str] = None
     overlay_caption: Optional[str] = None
 
 
 class OfficeScreen:
-    """Modal state manager for the Headmistress Office."""
+    """Manage modal visibility, active tab, and tab content generation."""
 
     def __init__(
         self,
@@ -35,6 +43,7 @@ class OfficeScreen:
         curriculum: Optional[dict] = None,
         staff: Optional[dict] = None,
     ) -> None:
+        """Initialize the Office with optional configuration snapshots."""
         self.visible: bool = False
         self._active_index: int = 0
         self._policy_cursor: int = 0
@@ -65,32 +74,40 @@ class OfficeScreen:
         return self._active_index
 
     def tab_titles(self) -> List[str]:
+        """Return the titles for each tab in order."""
         return [tab.title for tab in self._tabs]
 
     def toggle(self) -> None:
+        """Toggle modal visibility."""
         self.visible = not self.visible
 
     def bind_world(self, world) -> None:
+        """Associate the office with a World instance for actions."""
         self._world = world
 
     def open(self) -> None:
+        """Open the office modal."""
         self.visible = True
 
     def close(self) -> None:
+        """Close the office modal and reset cursor state."""
         self.visible = False
         self._policy_cursor = 0
 
     def next_tab(self) -> None:
+        """Cycle to the next tab."""
         self._active_index = (self._active_index + 1) % len(self._tabs)
         if self._tabs[self._active_index].key == "curriculum":
             self._sync_curriculum_cursor()
 
     def previous_tab(self) -> None:
+        """Cycle to the previous tab."""
         self._active_index = (self._active_index - 1) % len(self._tabs)
         if self._tabs[self._active_index].key == "curriculum":
             self._sync_curriculum_cursor()
 
     def select_tab(self, index: int) -> None:
+        """Select a specific tab by index."""
         if 0 <= index < len(self._tabs):
             self._active_index = index
             if self._tabs[index].key != "policies":
@@ -99,6 +116,7 @@ class OfficeScreen:
                 self._sync_curriculum_cursor()
 
     def focus_policy_option(self, direction: int) -> None:
+        """Move the policy/curriculum selection cursor in the given direction."""
         active_key = self._tabs[self._active_index].key
         if active_key == "curriculum":
             count = len(self._curriculum_options)
@@ -109,12 +127,14 @@ class OfficeScreen:
         self._policy_cursor = (self._policy_cursor + direction) % max(count, 1)
 
     def set_policy_target(self, key: str, value: Optional[str]) -> None:
+        """Queue a policy level to be applied for uniforms/discipline."""
         lowered = key.lower()
         if lowered not in self._pending_policy_values:
             raise ValueError(f"Unknown policy key: {key}")
         self._pending_policy_values[lowered] = value.lower() if value else None
 
     def set_curriculum_target(self, track: Optional[str]) -> None:
+        """Queue a curriculum track selection."""
         if track is None:
             self._pending_curriculum_track = None
             return
@@ -153,6 +173,7 @@ class OfficeScreen:
         return None
 
     def get_active_view(self, snapshot: Optional[dict] = None) -> OfficeView:
+        """Build and return the view for the active tab from the given snapshot."""
         tab = self._tabs[self._active_index]
         lines = tab.builder(snapshot or {})
         return OfficeView(key=tab.key, title=tab.title, lines=lines)

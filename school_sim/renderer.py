@@ -1,3 +1,5 @@
+"""Rendering helpers for rooms, students, overlays, and the Office modal."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,6 +26,7 @@ MODAL_PADDING = 18
 
 
 class Renderer:
+    """Render rooms, students, HUD, overlays, and the Office modal."""
     def __init__(
         self,
         rooms: Dict[str, Room],
@@ -33,6 +36,7 @@ class Renderer:
         office: Optional[OfficeScreen] = None,
         save_system: Optional[SaveSystem] = None,
     ):
+        """Initialise renderer state, Pygame display, and fonts."""
         pygame.init()
         self.rooms = rooms
         self.students = students
@@ -54,6 +58,7 @@ class Renderer:
         self.overlay.attach(self.screen)
 
     def draw(self, snapshot: dict):
+        """Draw the current frame (rooms, students, HUD, overlays)."""
         world_time = snapshot["time"]
         self.screen.fill((0, 0, 0))
 
@@ -69,6 +74,7 @@ class Renderer:
         pygame.display.flip()
 
     def process_events(self, world) -> bool:
+        """Process pygame events and route key presses to overlays/console."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False

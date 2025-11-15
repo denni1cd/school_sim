@@ -414,6 +414,7 @@ class World:
         self.curriculum_config["active_track"] = self.curriculum_state.get("active_track", "General")
 
     def _spread_students_in_rooms(self) -> None:
+        """Evenly position static students inside their current rooms for rendering."""
         occupants: Dict[str, List[Student]] = defaultdict(list)
         for student in self.students:
             if student.current_room:
@@ -434,6 +435,7 @@ class World:
                 student.y = y
 
     def _room_spread_positions(self, room: Room, count: int) -> List[Tuple[float, float]]:
+        """Return deterministic grid coordinates for up to `count` occupants inside `room`."""
         if count <= 0:
             return []
         center_x = room.x + room.width / 2.0
